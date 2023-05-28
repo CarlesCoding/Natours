@@ -113,6 +113,107 @@ const deleteTour = async (req, res) => {
     }
 };
 
+const getTourStats = async (req, res) => {
+    // https://www.mongodb.com/docs/manual/core/aggregation-pipeline/
+    try {
+        const stats = await Tour.aggregate([
+            // Define the stages. Will go through each one, one at a time. Step by step
+            {
+                $match: { ratingsAverage: { $gte: 4.5 } },
+            },
+            {
+                $group: {
+                    _id: { $toUpper: '$difficulty' }, // _id: what we want to use to group the documents
+                    numTours: { $sum: 1 }, // add 1 for each document that goes through the pipeline
+                    numRating: { $sum: '$ratingsQuantity' },
+                    averageRating: { $avg: '$ratingsAverage' },
+                    averagePrice: { $avg: '$price' },
+                    minPrice: { $min: '$price' },
+                    maxPrice: { $max: '$price' },
+                },
+            },
+            {
+                $sort: { averagePrice: 1 },
+            },
+            // {
+            //     $match: {
+            //         _id: { $ne: 'EASY' },
+            //     },
+            // },
+        ]);
+
+        res.status(200).json({
+            status: 'Success',
+            data: stats,
+        });
+    } catch (err) {
+        res.status(400).json({
+            status: 'fail',
+            message: err,
+        });
+    }
+};
+
+const getMonthlyPlan = async (req, res) => {
+    try {
+        const year = req.params.year * 1; // 2021
+
+        const plan = await Tour.aggregate([
+            {
+                // loop through all start dates in array
+                $unwind: '$startDates',
+            },
+            {
+                // get all start dates between the time specified
+                $match: {
+                    startDates: {
+                        $gte: new Date(`${year}-01-01`),
+                        $lte: new Date(`${year}-12-31`),
+                    },
+                },
+            },
+            {
+                // where the magic happens
+                $group: {
+                    _id: { $month: '$startDates' },
+                    numTourStarts: { $sum: 1 },
+                    tours: { $push: '$name' },
+                },
+            },
+            {
+                // Add month field
+                $addFields: {
+                    month: '$_id',
+                },
+            },
+            {
+                // remove the id field
+                $project: {
+                    _id: 0,
+                },
+            },
+            {
+                // sort numTourStarts in descending order
+                $sort: { numTourStarts: -1 },
+            },
+            {
+                // limit amount of results returned
+                $limit: 12,
+            },
+        ]);
+
+        res.status(200).json({
+            status: 'Success',
+            data: plan,
+        });
+    } catch (err) {
+        res.status(400).json({
+            status: 'fail',
+            message: err,
+        });
+    }
+};
+
 export {
     getAllTours,
     getTour,
@@ -120,4 +221,6 @@ export {
     updateTour,
     deleteTour,
     aliasTopTours,
+    getTourStats,
+    getMonthlyPlan,
 };
