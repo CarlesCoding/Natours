@@ -27,15 +27,14 @@ app.use((req, res, next) => {
     next();
 });
 
-// Adds the time of request to the request call
+// Another created middleware: Adds the time of request to the request call
 app.use((req, res, next) => {
     req.requestTime = new Date().toISOString();
     next();
 });
 
-// --------- ROUTES ---------
+// --------- ROUTES (These routes are technically middleware)---------
 // (tourRouter & userRouter) is essentially creating a small application for each router, then mount the router to the route.
-// these routes are technically middleware
 app.use('/api/v1/tours', tourRouter); // Mounting the router
 app.use('/api/v1/users', userRouter); // Mounting the router
 

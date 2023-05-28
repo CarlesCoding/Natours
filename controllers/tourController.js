@@ -1,10 +1,26 @@
 import Tour from '../models/tourModel.js';
+import APIFeatures from '../utils/apiFeatures.js';
 
 // ----- TOURS -----
+const aliasTopTours = (req, res, next) => {
+    // prefilling the query string for top 5 tours.
+    req.query.limit = '5';
+    req.query.sort = '-ratingsAverage,price';
+    req.query.fields = 'name,price,ratingsAverage,summery,difficulty';
+    next();
+};
+
 const getAllTours = async (req, res) => {
     try {
-        const tours = await Tour.find();
+        // Pass the model & query string into the APIFeatures class. To do any query modifications before being called
+        const features = new APIFeatures(Tour, req.query) // lecture says use Tour.find() but I think thats wrong.
+            .filter()
+            .sort()
+            .limitFields()
+            .paginate();
+        const tours = await features.query;
 
+        // ----- Send Response -----
         // "status" & "results" are Optional. But, nice to have
         res.status(200).json({
             status: 'success',
@@ -53,7 +69,8 @@ const createTour = async (req, res) => {
     } catch (err) {
         res.status(400).json({
             status: 'fail',
-            message: 'Invalid data sent!',
+            message: err,
+            // message: 'Invalid data sent!',
         });
     }
 };
@@ -96,4 +113,11 @@ const deleteTour = async (req, res) => {
     }
 };
 
-export { getAllTours, getTour, createTour, updateTour, deleteTour };
+export {
+    getAllTours,
+    getTour,
+    createTour,
+    updateTour,
+    deleteTour,
+    aliasTopTours,
+};
