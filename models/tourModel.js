@@ -111,9 +111,7 @@ tourSchema.pre('save', function (next) {
 // all strings that start with 'find'
 // tourSchema.pre('find', function (next) {
 tourSchema.pre(/^find/, function (next) {
-    // 'this' is a query object here.
-    this.find({ secretTour: { $ne: true } });
-
+    this.find({ secretTour: { $ne: true } }); // 'this' is a query object here.
     this.start = Date.now();
     next();
 });
