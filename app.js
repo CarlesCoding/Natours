@@ -20,6 +20,9 @@ if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev')); // good for logging/debugging
 }
 
+// ? Was having issues with switching between dev and production. use this console.log to check what server you're on
+console.log(process.env.NODE_ENV);
+
 app.use(express.json()); // allows the ability to parse json from request
 app.use(express.static(`${__dirname}/public`)); // Serve static files from a folder, NOT from a route
 
@@ -39,7 +42,7 @@ app.use('/api/v1/users', userRouter); // Mounting the router
 // if ANYTHING is passed into next(), its assumed its an error.
 // & skips all other middleware & send the error to our global error handling middleware
 app.all('*', (req, res, next) => {
-    next(new AppError(`Cant't find ${req.originalUrl} on serer!`, 404));
+    next(new AppError(`Cant't find ${req.originalUrl} on this serer!`, 404));
 });
 
 // Global Error Handling middleware
