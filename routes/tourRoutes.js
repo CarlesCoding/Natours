@@ -1,4 +1,5 @@
 import express from 'express';
+import catchAsyncErrors from '../utils/catchAsyncErrors.js';
 import {
     getAllTours,
     getTour,
@@ -11,7 +12,7 @@ import {
     // checkID,
     // checkBody,
 } from '../controllers/tourController.js';
-import catchAsyncErrors from '../utils/catchAsyncErrors.js';
+import { protect } from '../controllers/authController.js';
 
 const router = express.Router();
 
@@ -27,9 +28,10 @@ router.route('/tour-stats').get(catchAsyncErrors(getTourStats));
 router.route('/monthly-plan/:year').get(catchAsyncErrors(getMonthlyPlan));
 router.route('/top-5-cheap').get(aliasTopTours, catchAsyncErrors(getAllTours)); // use a middleware(aliasTopTours) to change the request before sending it
 
+// router.TYPE('/ROUTE', catchAsyncErrors(MIDDLEWARE),  catchAsyncErrors(HANDLER));
 router
     .route('/')
-    .get(catchAsyncErrors(getAllTours))
+    .get(catchAsyncErrors(protect), catchAsyncErrors(getAllTours))
     .post(catchAsyncErrors(createTour));
 router
     .route('/:id')
