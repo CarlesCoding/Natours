@@ -12,7 +12,7 @@ import {
     // checkID,
     // checkBody,
 } from '../controllers/tourController.js';
-import { protect } from '../controllers/authController.js';
+import { protect, restrictRolesTo } from '../controllers/authController.js';
 
 const router = express.Router();
 
@@ -37,6 +37,10 @@ router
     .route('/:id')
     .get(catchAsyncErrors(getTour))
     .patch(catchAsyncErrors(updateTour))
-    .delete(catchAsyncErrors(deleteTour));
+    .delete(
+        catchAsyncErrors(protect),
+        restrictRolesTo('admin', 'lead-guide'),
+        catchAsyncErrors(deleteTour)
+    );
 
 export default router;

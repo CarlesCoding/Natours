@@ -3,10 +3,12 @@ import jwt from 'jsonwebtoken';
 import { promisify } from 'util';
 import User from '../models/userModel.js';
 import AppError from '../utils/appError.js';
+import sendEmail from '../utils/email.js';
 
 //* Visual representation of how the login process works with JWT. theory-lectures.pdf page: 91
 
 const signtoken = (id) =>
+    // jwt.sign(payload, secret, {Options})
     jwt.sign({ id }, process.env.TOKEN_SECRET, {
         expiresIn: process.env.JWT_EXPIRES_IN,
     });
@@ -18,9 +20,9 @@ const signup = async (req, res, next) => {
         password: req.body.password,
         passwordConfirm: req.body.passwordConfirm,
         passwordChangedAt: Date.now(),
+        role: req.body.role,
     });
 
-    // jwt.sign(payload, secret, {Options})
     const token = signtoken(newUser._id);
 
     res.status(201).json({
@@ -56,6 +58,7 @@ const login = async (req, res, next) => {
     });
 };
 
+// Middleware to protect routes. (Must have valid token to visit route)
 const protect = async (req, res, next) => {
     // 1.) Getting the token and check if it exist
     let token;
@@ -102,8 +105,81 @@ const protect = async (req, res, next) => {
     }
 
     // GRANT ACCESS TO PROTECTED ROUTE
-    req.user = currentUser;
+    req.user = currentUser; // add the current user to the request. So, it can be used by other middleware AFTER this has been ran.
     next();
 };
 
-export { signup, login, protect };
+// Creates a closure. Allows multiple values to be passed to the function. THEN the Second function will be the actual middleware
+const restrictRolesTo =
+    (...roles) =>
+    (req, res, next) => {
+        // roles is an array ['admin', 'lead-guide']. roles='user' would fail then
+        if (!roles.includes(req.user.role)) {
+            return next(
+                new AppError(
+                    `You do not have permission to perform this action.`,
+                    403
+                )
+            );
+        }
+
+        next();
+    };
+
+const forgotPassword = async (req, res, next) => {
+    // 1.) Get user based on POSTed email
+    const user = await User.findOne({ email: req.body.email });
+    if (!user) {
+        return next(
+            new AppError(`There is no user with that email address.`, 404)
+        );
+    }
+
+    // 2.) Generate the reset token
+    const resetToken = user.createPasswordResetToken();
+    // validateBeforeSave: skips running the validation again (it would fail since not all required info is provided here, just the resetToken)
+    await user.save({ validateBeforeSave: false });
+
+    // 3.) Send it to users email
+    const resetURL = `${req.protocol}://${req.get(
+        'host'
+    )}/api/v1/users/resetPassword/${resetToken}`;
+
+    const message = `Forgot your password? Submit a PATCH request with your new password and passwordConfirm to: ${resetURL}.\nIf you didn't forget your password, please ignore this email.`;
+
+    await sendEmail({
+        email: user.email,
+        subject: `Your valid reset token (valid for 10 min)`,
+        message,
+    });
+
+    // 4.) Send Res to client (try catch here, because we need to change back (invalidate) the tokens if their is an error.)
+    try {
+        res.status(200).json({
+            status: 'success',
+            message: 'Token sent to email!',
+        });
+    } catch (err) {
+        user.createPasswordResetToken = undefined;
+        user.passwordResetExpires = undefined;
+        await user.save({ validateBeforeSave: false });
+
+        return next(
+            new AppError(
+                `There was an error sending the email. Try again later!`,
+                500
+            )
+        );
+    }
+};
+
+const resetPassword = (req, res, next) => {};
+
+export {
+    signup,
+    login,
+    protect,
+    restrictRolesTo,
+    forgotPassword,
+    resetPassword,
+};

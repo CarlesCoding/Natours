@@ -1,12 +1,8 @@
 import AppError from '../utils/appError.js';
 
 /*
-  THREE TYPES OF ERRORS IN MONGO:
-
-  CastError (invalid ID)
-  Duplication (Tours cant have same name. Must be unique as described in the Tour.model)
-  validation
-
+  THREE TYPES OF ERRORS IN MONGO: 
+  CastError (invalid ID), validation, Duplication (Tours cant have same name. Must be unique as described in the Tour.model)
 */
 
 // ------- HANDLE ALL MONGOOSE SPECIFIC ERRORS ------- //
@@ -17,8 +13,6 @@ const handleCastErrorDB = (err) => {
 };
 
 const handleDuplicateFieldsDB = (err) => {
-    console.log(err.keyValue.name);
-    // const value = err.errmsg.match(/(["'])(\\?.)*?\1/);
     const value = err.keyValue.name;
     const message = `Duplicate Field Value: "${value}". Please use another value!`;
     return new AppError(message, 400);
@@ -26,7 +20,6 @@ const handleDuplicateFieldsDB = (err) => {
 
 const handleValidationErrorDB = (err) => {
     const errors = Object.values(err.errors).map((el) => el.message); // loop over all the errors and display them all
-
     const message = `Invalid input data. ${errors.join('. ')}`;
     return new AppError(message, 400);
 };

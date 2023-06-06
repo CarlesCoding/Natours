@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import validator from 'validator';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 
 const userSchema = new mongoose.Schema({
     name: {
@@ -16,6 +17,11 @@ const userSchema = new mongoose.Schema({
     },
     photo: {
         type: String,
+    },
+    role: {
+        type: String,
+        enum: ['user', 'guide', 'lead-guide', 'admin'],
+        default: 'user',
     },
     password: {
         type: String,
@@ -35,6 +41,8 @@ const userSchema = new mongoose.Schema({
         },
     },
     passwordChangedAt: Date,
+    passwordResetToken: String,
+    passwordResetExpires: Date,
 });
 
 // Middleware ran after data is received. BUT, BEFORE submitted to database
@@ -73,6 +81,24 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
 
     // FALSE means NOT changed
     return false;
+};
+
+// Instance method that can be called to create password reset token
+userSchema.methods.createPasswordResetToken = function () {
+    const resetToken = crypto.randomBytes(32).toString('hex');
+
+    // Use crypto to encrypt the reset token to save in DB (NEVER save a plain text token)
+    this.passwordResetToken = crypto
+        .createHash('sha256')
+        .update(resetToken)
+        .digest('hex');
+
+    console.log({ resetToken }, this.passwordResetToken);
+
+    this.passwordResetExpires = Date.now() + 10 * 60 * 1000; // ? Check this is 10min expiration
+
+    // Return the unencrypted token, to be sent in reset email.
+    return resetToken;
 };
 
 const User = mongoose.model('User', userSchema);
