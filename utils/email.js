@@ -3,8 +3,6 @@ import nodemailer from 'nodemailer';
 // TEST MAILBOX: https://mailtrap.io/inboxes
 
 const sendEmail = async (options) => {
-    // const testAccount = await nodemailer.createTestAccount();
-
     // 1.) Create the transporter
     const transporter = nodemailer.createTransport({
         host: process.env.MAILER_HOST,

@@ -43,9 +43,15 @@ const userSchema = new mongoose.Schema({
     passwordChangedAt: Date,
     passwordResetToken: String,
     passwordResetExpires: Date,
+    active: {
+        type: Boolean,
+        default: true,
+        select: false, // 'select: false' : hides the data from showing on request output
+    },
 });
 
-// Middleware ran after data is received. BUT, BEFORE submitted to database
+// -------------------- Middleware -------------------- //
+// (.pre) Middleware ran after data is received. BUT, BEFORE submitted to database
 userSchema.pre('save', async function (next) {
     // Only run this function if password was actually modified
     if (!this.isModified('password')) return next();
@@ -59,7 +65,22 @@ userSchema.pre('save', async function (next) {
     next();
 });
 
-// Instance method that can be called to check passwords are correct
+userSchema.pre('save', function (next) {
+    if (!this.isModified('password') || this.isNew) return next();
+
+    this.passwordChangedAt = Date.now() - 1000; // -1000 to counter the delay between saving to db and token distribution
+    next();
+});
+
+// middleware that runs before any "find" query. Returning only users that are active
+userSchema.pre(/^find/, function (next) {
+    // 'this' points to the current query
+    this.find({ active: { $ne: false } });
+    next();
+});
+
+// -------------------- Instance method -------------------- //
+// Called to check passwords are correct
 userSchema.methods.correctPassword = async function (
     candidatePassword,
     userPassword
@@ -68,7 +89,7 @@ userSchema.methods.correctPassword = async function (
     return bcrypt.compare(candidatePassword, userPassword);
 };
 
-// Instance method that can be called to check passwords are correct
+// Called to check password wasn't changed after JWT was issued
 userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
     if (this.passwordChangedAt) {
         const changedTimestamp = parseInt(
@@ -83,7 +104,7 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
     return false;
 };
 
-// Instance method that can be called to create password reset token
+// Called to create password reset token
 userSchema.methods.createPasswordResetToken = function () {
     const resetToken = crypto.randomBytes(32).toString('hex');
 
@@ -101,6 +122,7 @@ userSchema.methods.createPasswordResetToken = function () {
     return resetToken;
 };
 
+// -------------------- Create User Object -------------------- //
 const User = mongoose.model('User', userSchema);
 
 export default User;

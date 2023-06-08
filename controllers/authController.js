@@ -1,6 +1,7 @@
 /* eslint-disable prefer-destructuring */
 import jwt from 'jsonwebtoken';
 import { promisify } from 'util';
+import crypto from 'crypto';
 import User from '../models/userModel.js';
 import AppError from '../utils/appError.js';
 import sendEmail from '../utils/email.js';
@@ -13,6 +14,18 @@ const signtoken = (id) =>
         expiresIn: process.env.JWT_EXPIRES_IN,
     });
 
+const createAndSentToken = (user, statusCode, res) => {
+    const token = signtoken(user._id);
+
+    res.status(statusCode).json({
+        status: 'success',
+        token,
+        data: {
+            user,
+        },
+    });
+};
+
 const signup = async (req, res, next) => {
     const newUser = await User.create({
         name: req.body.name,
@@ -23,15 +36,7 @@ const signup = async (req, res, next) => {
         role: req.body.role,
     });
 
-    const token = signtoken(newUser._id);
-
-    res.status(201).json({
-        status: 'success',
-        token,
-        data: {
-            user: newUser,
-        },
-    });
+    createAndSentToken(newUser, 201, res);
 };
 
 const login = async (req, res, next) => {
@@ -50,12 +55,7 @@ const login = async (req, res, next) => {
     }
 
     // 3.) If Everything is ok, send token to client
-    const token = signtoken(user._id);
-
-    res.status(200).json({
-        status: 'success',
-        token,
-    });
+    createAndSentToken(user, 200, res);
 };
 
 // Middleware to protect routes. (Must have valid token to visit route)
@@ -173,7 +173,56 @@ const forgotPassword = async (req, res, next) => {
     }
 };
 
-const resetPassword = (req, res, next) => {};
+// forgot password will send a message containing a url to resetPassword route with token
+const resetPassword = async (req, res, next) => {
+    // 1.) Get user based on the token
+    // Grab the token that was supplied as a param in the url (router.patch('/resetPassword/:token', catchAsyncErrors(resetPassword));)
+    const hashedToken = crypto
+        .createHash('sha256')
+        .update(req.params.token)
+        .digest('hex');
+
+    const user = await User.findOne({
+        passwordResetToken: hashedToken,
+        passwordResetExpires: { $gt: Date.now() },
+    });
+
+    // 2.) If token has not expired, and there is user, set the new password
+    if (!user) {
+        return next(new AppError(`Token is invalid or has expired`, 400));
+    }
+
+    user.password = req.body.password;
+    user.passwordConfirm = req.body.passwordConfirm;
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+
+    await user.save();
+
+    // 3.) Update passwordChangedAt property for the user
+    // 4.) Log the user in, send jwt
+    createAndSentToken(user, 200, res);
+};
+
+// Update password (only for logged in users)
+const updatePassword = async (req, res, next) => {
+    // 1.) Get user from collection
+    const user = await User.findById(req.user.id).select('+password');
+
+    // 2.) Check if POSTed current password is correct
+    if (!(await user?.correctPassword(req.body.passwordCurrent, user.password)))
+        return next(new AppError(`Incorrect password`, 401));
+
+    // 3.) If so, update password
+    user.password = req.body.password;
+    user.passwordConfirm = req.body.passwordConfirm;
+    await user.save();
+
+    // User.findByIdAndUpdate() will NOT work as intended!
+
+    // 4.)  Log user in, send JWT
+    createAndSentToken(user, 200, res);
+};
 
 export {
     signup,
@@ -182,4 +231,5 @@ export {
     restrictRolesTo,
     forgotPassword,
     resetPassword,
+    updatePassword,
 };

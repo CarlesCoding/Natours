@@ -20,10 +20,12 @@ const opts = {
     useUnifiedTopology: true, // Recommended by cli (look up later!)
 };
 
+// Connect to Database
 mongoose
     .connect(DB, opts)
     .then(() => console.log('✔️  Connected to DB Successfully.'));
 
+// Start Application
 const server = app.listen(PORT, () => {
     console.log(`✔️  App running on port ${PORT}...`);
 });

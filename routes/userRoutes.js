@@ -5,6 +5,8 @@ import {
     getUser,
     updateUser,
     deleteUser,
+    updateMe,
+    deleteMe,
 } from '../controllers/userController.js';
 import catchAsyncErrors from '../utils/catchAsyncErrors.js';
 import {
@@ -12,6 +14,8 @@ import {
     login,
     forgotPassword,
     resetPassword,
+    protect,
+    updatePassword,
 } from '../controllers/authController.js';
 
 const router = express.Router();
@@ -26,6 +30,21 @@ router.post('/login', catchAsyncErrors(login));
 // Password Reset routes
 router.post('/forgotPassword', catchAsyncErrors(forgotPassword));
 router.patch('/resetPassword/:token', catchAsyncErrors(resetPassword));
+router.patch(
+    '/updateMyPassword',
+    catchAsyncErrors(protect),
+    catchAsyncErrors(updatePassword)
+);
+router.patch(
+    '/updateMe',
+    catchAsyncErrors(protect),
+    catchAsyncErrors(updateMe)
+);
+router.delete(
+    '/deleteMe',
+    catchAsyncErrors(protect),
+    catchAsyncErrors(deleteMe)
+);
 
 // -------------------- User Routes -------------------- //
 router.route('/').get(catchAsyncErrors(getAllUsers)).post(createUser);
