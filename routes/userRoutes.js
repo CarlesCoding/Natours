@@ -35,6 +35,7 @@ router.patch(
     catchAsyncErrors(protect),
     catchAsyncErrors(updatePassword)
 );
+// Current User acct management
 router.patch(
     '/updateMe',
     catchAsyncErrors(protect),

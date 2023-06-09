@@ -1,5 +1,11 @@
 import express from 'express';
 import morgan from 'morgan';
+import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
+import mongoSanitize from 'express-mongo-sanitize';
+import xss from 'xss-clean';
+import hpp from 'hpp';
+
 import path from 'path';
 import { fileURLToPath } from 'url';
 import tourRouter from './routes/tourRoutes.js';
@@ -14,25 +20,60 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// --------- MIDDLEWARE ---------
-// Only run logger in development environment
+// ------------------ GLOBAL MIDDLEWARE ------------------ //
+
+// Set security HTTP headers
+app.use(helmet());
+
+// LOGGER: only ran in the development environment (good for debugging)
 if (process.env.NODE_ENV === 'development') {
-    app.use(morgan('dev')); // good for logging/debugging
+    app.use(morgan('dev'));
 }
 
-// ? Was having issues with switching between dev and production. use this console.log to check what server you're on
-console.log(process.env.NODE_ENV);
+// IP RATE LIMITER: Allowed: 100 request from per 1 hour
+const limiter = rateLimit({
+    max: 100,
+    windowMs: 60 * 60 * 1000,
+    message: `To many request from this IP, please try again in an hour!`,
+});
 
-app.use(express.json()); // allows the ability to parse json from request
-app.use(express.static(`${__dirname}/public`)); // Serve static files from a folder, NOT from a route
+// use the limiter on ALL routes that start with /api
+app.use('/api', limiter);
 
-// Create own middleware: Adds the time of request to the request call
+// Body parser, reading data from the body into req.body (json)
+app.use(express.json({ limit: '10kb' }));
+
+// DATA SANITIZATION against NoSQL query injection
+app.use(mongoSanitize());
+
+// DATA SANITIZATION against XSS (cross-site-scripting)
+app.use(xss());
+
+// PREVENT PARAMETER POLLUTION
+app.use(
+    hpp({
+        whitelist: [
+            'duration',
+            'maxGroupSize',
+            'difficulty',
+            'ratingsAverage',
+            'ratingsQuantity',
+            'price',
+        ],
+    })
+);
+
+// Serve static files from a folder, NOT from a route
+app.use(express.static(`${__dirname}/public`));
+
+// TEST MIDDLEWARE: Create own middleware: Adds the time of request to the request call
 app.use((req, res, next) => {
     req.requestTime = new Date().toISOString();
     next();
 });
 
-// --------- ROUTES (These routes are technically middleware)---------
+// ------------------ ROUTES (These routes are technically middleware) ------------------ //
+
 // (tourRouter & userRouter) is essentially creating a small application for each router, then mount the router to the route.
 app.use('/api/v1/tours', tourRouter); // Mounting the router
 app.use('/api/v1/users', userRouter); // Mounting the router

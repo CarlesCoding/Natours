@@ -101,12 +101,6 @@ tourSchema.pre('save', function (next) {
     next();
 });
 
-// 'post' middleware executes after pre middleware is completed
-// tourSchema.post('save', (doc, next) => {
-//     console.log(`doc = `, doc);
-//     next();
-// });
-
 // QUERY MIDDLEWARE
 // all strings that start with 'find'
 // tourSchema.pre('find', function (next) {
