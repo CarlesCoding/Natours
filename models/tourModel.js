@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import slugify from 'slugify';
+// import User from './userModel.js';
 
 const tourSchema = new mongoose.Schema(
     {
@@ -81,8 +82,40 @@ const tourSchema = new mongoose.Schema(
             select: false, // hide when getTour() is called
         },
         startDates: [Date],
-        secretTour: Boolean,
-        default: false,
+        secretTour: {
+            type: Boolean,
+            default: false,
+        },
+        // Embedded Documents (startLocation, locations)
+        startLocation: {
+            type: {
+                type: String,
+                default: 'Point',
+                enum: ['Point'], // It can only be Point
+            },
+            coordinates: [Number], // We expect a array of numbers
+            address: String,
+            description: String,
+        },
+        locations: [
+            {
+                type: {
+                    type: String,
+                    default: 'Point',
+                    enum: ['Point'],
+                },
+                coordinates: [Number],
+                address: String,
+                description: String,
+                day: Number,
+            },
+        ],
+        guides: [
+            {
+                type: mongoose.Schema.ObjectId,
+                ref: 'User',
+            },
+        ],
     },
     {
         toJSON: { virtuals: true },
@@ -95,19 +128,38 @@ tourSchema.virtual('durationWeeks').get(function () {
     return this.duration / 7;
 });
 
-// DOCUMENT MIDDLEWARE: runs ONLY before .save() and .create(). Has access to 'next()'
+// -------------------- DOCUMENT MIDDLEWARE -------------------- //
+// runs ONLY before .save() and .create(). Has access to 'next()'
+
 tourSchema.pre('save', function (next) {
     this.slug = slugify(this.name, { lower: true }); // lowercase
     next();
 });
 
-// QUERY MIDDLEWARE
+// On save, loop through user IDs & add user documents to the model (Embedded data)
+// tourSchema.pre('save', async function (next) {
+//     const guidesPromises = this.guides.map(async (id) => User.findById(id)); // returns an array of promises
+//     console.log('guidesPromises', guidesPromises);
+//     this.guides = await Promise.all(guidesPromises); // run with Promise.all()
+//     next();
+// });
+
+// -------------------- QUERY MIDDLEWARE -------------------- //
+// 'this' is a query object here.
+
 // all strings that start with 'find'
-// tourSchema.pre('find', function (next) {
 tourSchema.pre(/^find/, function (next) {
-    this.find({ secretTour: { $ne: true } }); // 'this' is a query object here.
+    this.find({ secretTour: { $ne: true } });
     this.start = Date.now();
     next();
+});
+
+// Populate whole document, not just reference ObjectIds (.populate does ADD another query. Can get pricy in LARGE applications)
+tourSchema.pre(/^find/, function (next) {
+    this.populate({
+        path: 'guides', // what field you want populated
+        select: '-__v -passwordChangedAt', // only get what you want
+    });
 });
 
 tourSchema.post(/^find/, function (docs, next) {
@@ -116,7 +168,7 @@ tourSchema.post(/^find/, function (docs, next) {
     next();
 });
 
-// AGGREGATION MIDDLEWARE
+// -------------------- AGGREGATION MIDDLEWARE -------------------- //
 tourSchema.pre('aggregate', function (next) {
     // 'this' is a aggregation object here.
     // add '$match' to the beginning of the pipeline array
@@ -125,7 +177,7 @@ tourSchema.pre('aggregate', function (next) {
     next();
 });
 
-// .model(nameOfModel, Schema)
+// mongoose.model(nameOfModel, Schema)
 const Tour = mongoose.model('Tour', tourSchema);
 
 export default Tour;

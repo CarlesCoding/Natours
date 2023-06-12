@@ -31,10 +31,12 @@ mongoose.connect(DB, opts).then(
 
 // Read JSON from file
 const tours = JSON.parse(
-    fs.readFileSync(path.join(__dirname, 'tours-simple.json'), 'utf-8')
+    fs.readFileSync(path.join(__dirname, 'tours.json'), 'utf-8')
 );
 console.log(tours);
+
 // Import data in to database
+// node .\dev-data\data\import-dev-data.js --import
 const importData = async () => {
     try {
         await Tour.create(tours);
@@ -46,6 +48,7 @@ const importData = async () => {
 };
 
 // Delete all data from database
+// node .\dev-data\data\import-dev-data.js --delete
 const deleteData = async () => {
     try {
         await Tour.deleteMany(); // Deletes everything in that collection in the DB
