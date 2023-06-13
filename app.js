@@ -10,6 +10,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import tourRouter from './routes/tourRoutes.js';
 import userRouter from './routes/userRoutes.js';
+import reviewRouter from './routes/reviewRoutes.js';
 import AppError from './utils/appError.js';
 import globalErrorHandler from './controllers/errorController.js';
 // ESM Specific quirks (features)
@@ -77,6 +78,7 @@ app.use((req, res, next) => {
 // (tourRouter & userRouter) is essentially creating a small application for each router, then mount the router to the route.
 app.use('/api/v1/tours', tourRouter); // Mounting the router
 app.use('/api/v1/users', userRouter); // Mounting the router
+app.use('/api/v1/reviews', reviewRouter); // Mounting the router
 
 // Middleware added after the routes, in case the request isn't handled in the above routes.
 // It catches all http request types with '.all' and any route with '*'

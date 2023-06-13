@@ -35,6 +35,17 @@ const reviewSchema = new mongoose.Schema(
         toObject: { virtuals: true },
     }
 );
+// -------------------- QUERY MIDDLEWARE ('this' is a query object here) -------------------- //
+
+// Populate the user & location fields when querying, not just reference ObjectIds (ADDs another query for each .populate() call. Can get pricy/slow in LARGE applications)
+reviewSchema.pre(/^find/, function (next) {
+    this.populate({
+        path: 'user',
+        select: 'name photo',
+    });
+
+    next();
+});
 
 const Review = mongoose.model('Review', reviewSchema);
 
@@ -49,4 +60,4 @@ export default Review;
       toObject: { virtuals: true },
     }
     
- */
+*/

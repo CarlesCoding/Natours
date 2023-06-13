@@ -1,4 +1,4 @@
-// Server.js Will now be the entry point for the app
+// ---------- Server.js Will now be the entry point for the app ---------- //
 import './env.js';
 import mongoose from 'mongoose';
 import { app } from './app.js';

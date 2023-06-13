@@ -86,7 +86,7 @@ const tourSchema = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
-        // Embedded Documents (startLocation, locations)
+        // Embedded Documents: (startLocation & locations)
         startLocation: {
             type: {
                 type: String,
@@ -110,6 +110,7 @@ const tourSchema = new mongoose.Schema(
                 day: Number,
             },
         ],
+        // Referencing:
         guides: [
             {
                 type: mongoose.Schema.ObjectId,
@@ -122,10 +123,18 @@ const tourSchema = new mongoose.Schema(
         toObject: { virtuals: true },
     }
 );
+// -------------------- Virtuals -------------------- //
 
 // Can NOT use virtual properties in query
 tourSchema.virtual('durationWeeks').get(function () {
     return this.duration / 7;
+});
+
+// Virtual POPULATE (allows us to keep all child docs on parent docs, WITHOUT persisting to the database)
+tourSchema.virtual('reviews', {
+    ref: 'Review',
+    foreignField: 'tour',
+    localField: '_id',
 });
 
 // -------------------- DOCUMENT MIDDLEWARE -------------------- //
@@ -136,7 +145,7 @@ tourSchema.pre('save', function (next) {
     next();
 });
 
-// On save, loop through user IDs & add user documents to the model (Embedded data)
+// (Embedded data) On save, loop through user IDs & add user documents to the model
 // tourSchema.pre('save', async function (next) {
 //     const guidesPromises = this.guides.map(async (id) => User.findById(id)); // returns an array of promises
 //     console.log('guidesPromises', guidesPromises);
@@ -144,22 +153,23 @@ tourSchema.pre('save', function (next) {
 //     next();
 // });
 
-// -------------------- QUERY MIDDLEWARE -------------------- //
-// 'this' is a query object here.
+// -------------------- QUERY MIDDLEWARE ('this' is a query object here) -------------------- //
 
-// all strings that start with 'find'
+// regex: all strings that start with 'find'
 tourSchema.pre(/^find/, function (next) {
     this.find({ secretTour: { $ne: true } });
     this.start = Date.now();
     next();
 });
 
-// Populate whole document, not just reference ObjectIds (.populate does ADD another query. Can get pricy in LARGE applications)
+// Populate whole document, not just reference ObjectIds (.populate() does ADD another query. Can get pricy in LARGE applications)
 tourSchema.pre(/^find/, function (next) {
     this.populate({
         path: 'guides', // what field you want populated
         select: '-__v -passwordChangedAt', // only get what you want
     });
+
+    next();
 });
 
 tourSchema.post(/^find/, function (docs, next) {
