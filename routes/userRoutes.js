@@ -1,12 +1,12 @@
 import express from 'express';
 import {
     getAllUsers,
-    createUser,
     getUser,
     updateUser,
     deleteUser,
     updateMe,
     deleteMe,
+    getMe,
 } from '../controllers/userController.js';
 import catchAsyncErrors from '../utils/catchAsyncErrors.js';
 import {
@@ -37,6 +37,7 @@ router.patch(
 );
 
 // Current User acct management
+router.get('/me', catchAsyncErrors(protect), getMe, catchAsyncErrors(getUser));
 router.patch(
     '/updateMe',
     catchAsyncErrors(protect),
@@ -49,7 +50,7 @@ router.delete(
 );
 
 // -------------------- User Routes -------------------- //
-router.route('/').get(catchAsyncErrors(getAllUsers)).post(createUser);
+router.route('/').get(catchAsyncErrors(getAllUsers));
 router.route('/:id').get(getUser).patch(updateUser).delete(deleteUser);
 
 export default router;

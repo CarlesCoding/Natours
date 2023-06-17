@@ -1,7 +1,6 @@
 import User from '../models/userModel.js';
 import AppError from '../utils/appError.js';
-// import APIFeatures from '../utils/apiFeatures.js';
-// import AppError from '../utils/appError.js';
+import { deleteOne, updateOne, getOne, getAll } from './handlerFactory.js';
 
 const filterObj = (obj, ...allowedFields) => {
     const newObj = {};
@@ -10,22 +9,6 @@ const filterObj = (obj, ...allowedFields) => {
     });
 
     return newObj;
-};
-
-// USERS
-const getAllUsers = async (req, res, next) => {
-    const users = await User.find();
-
-    // ----- Send Response -----
-    res.status(200).json({
-        status: 'success',
-        results: users.length,
-        data: {
-            users,
-        },
-    });
-
-    next();
 };
 
 const updateMe = async (req, res, next) => {
@@ -70,40 +53,27 @@ const deleteMe = async (req, res, next) => {
     });
 };
 
-const createUser = (req, res) => {
-    res.status(500).json({
-        status: 'error',
-        message: '❗  This route is not yet defined!',
-    });
+// Middleware to add user id to params. For getUser() to use.
+const getMe = (req, res, next) => {
+    req.params.id = req.user.id;
+    next();
 };
 
-const getUser = (req, res) => {
-    res.status(500).json({
-        status: 'error',
-        message: '❗  This route is not yet defined!',
-    });
-};
+// USERS
+const getAllUsers = getAll(User);
 
-const updateUser = (req, res) => {
-    res.status(500).json({
-        status: 'error',
-        message: '❗ This route is not yet defined!',
-    });
-};
+const getUser = getOne(User);
 
-const deleteUser = (req, res) => {
-    res.status(500).json({
-        status: 'error',
-        message: '❗  This route is not yet defined!',
-    });
-};
+const updateUser = updateOne(User); // DO NOT UPDATE PASSWORDS WITH THIS!
+
+const deleteUser = deleteOne(User);
 
 export {
     getAllUsers,
-    createUser,
     getUser,
     updateUser,
     deleteUser,
     updateMe,
     deleteMe,
+    getMe,
 };

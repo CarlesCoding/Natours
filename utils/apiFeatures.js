@@ -5,8 +5,7 @@ class APIFeatures {
         this.queryString = queryString;
     }
 
-    // Methods
-
+    // -------------------- Methods -------------------- //
     filter() {
         // 1A.) FILTERING
         const queryObj = { ...this.queryString }; // Take a hard copy of the obj

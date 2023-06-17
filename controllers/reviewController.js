@@ -1,26 +1,37 @@
 import Review from '../models/reviewModel.js';
+import {
+    createOne,
+    deleteOne,
+    updateOne,
+    getOne,
+    getAll,
+} from './handlerFactory.js';
 
-const getAllReviews = async (req, res, next) => {
-    const reviews = await Review.find();
+const setTourUserIds = (req, res, next) => {
+    // ALlow nested routes (makes it optional to supply them in the req)
+    // If no tour in the body, set the tour to the one supplied in the url
+    if (!req.body.tour) req.body.tour = req.params.tourId;
 
-    res.status(200).json({
-        status: 'success',
-        results: reviews.length,
-        data: {
-            reviews,
-        },
-    });
+    // If no user supplied in the body, get it from the user object that was added when going through the "protect" middleware.
+    if (!req.body.user) req.body.user = req.user.id;
+    next();
 };
 
-const createReview = async (req, res, next) => {
-    const newReview = await Review.create(req.body);
+const getAllReviews = getAll(Review);
 
-    res.status(201).json({
-        status: 'success',
-        data: {
-            review: newReview,
-        },
-    });
+const getReview = getOne(Review);
+
+const createReview = createOne(Review);
+
+const deleteReview = deleteOne(Review);
+
+const updateReview = updateOne(Review);
+
+export {
+    getAllReviews,
+    createReview,
+    deleteReview,
+    updateReview,
+    setTourUserIds,
+    getReview,
 };
-
-export { getAllReviews, createReview };

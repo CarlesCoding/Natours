@@ -13,8 +13,14 @@ import {
     // checkBody,
 } from '../controllers/tourController.js';
 import { protect, restrictRolesTo } from '../controllers/authController.js';
+import reviewRouter from './reviewRoutes.js';
 
 const router = express.Router();
+
+// Use the reviewRouter if encounter a url that starts with "/:tourId/reviews"
+// (Makes it so we only have to manage one route in one place)
+// Explained better in ./reviewRoutes.js
+router.use('/:tourId/reviews', reviewRouter);
 
 // Can create a 'checkID' function to check id is valid, before hitting the route.
 // router.param('id', checkID);
@@ -28,7 +34,7 @@ router.route('/tour-stats').get(catchAsyncErrors(getTourStats));
 router.route('/monthly-plan/:year').get(catchAsyncErrors(getMonthlyPlan));
 router.route('/top-5-cheap').get(aliasTopTours, catchAsyncErrors(getAllTours)); // use a middleware(aliasTopTours) to change the request before sending it
 
-// router.TYPE('/ROUTE', catchAsyncErrors(MIDDLEWARE),  catchAsyncErrors(HANDLER));
+// TEMPLATE: router.route('/ROUTE').TYPE(catchAsyncErrors(MIDDLEWARE),  catchAsyncErrors(HANDLER));
 router
     .route('/')
     .get(catchAsyncErrors(protect), catchAsyncErrors(getAllTours))

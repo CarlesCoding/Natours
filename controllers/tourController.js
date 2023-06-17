@@ -1,92 +1,29 @@
 import Tour from '../models/tourModel.js';
-import APIFeatures from '../utils/apiFeatures.js';
-import AppError from '../utils/appError.js';
+import {
+    createOne,
+    deleteOne,
+    updateOne,
+    getOne,
+    getAll,
+} from './handlerFactory.js';
 
 // ----- TOURS -----
+const getAllTours = getAll(Tour);
+
+const getTour = getOne(Tour, { path: 'reviews' }); // "{ path: 'reviews' }" is the field we want populated
+
+const createTour = createOne(Tour);
+
+const updateTour = updateOne(Tour);
+
+const deleteTour = deleteOne(Tour);
+
 const aliasTopTours = (req, res, next) => {
     // prefilling the query string for top 5 tours.
     req.query.limit = '5';
     req.query.sort = '-ratingsAverage,price';
     req.query.fields = 'name,price,ratingsAverage,summery,difficulty';
     next();
-};
-
-const getAllTours = async (req, res, next) => {
-    // Pass the model & query string into the APIFeatures class. To do any query modifications before being called
-    const features = new APIFeatures(Tour, req.query) // lecture says use Tour.find() but I think thats wrong. So i use the model (Tour)
-        .filter()
-        .sort()
-        .limitFields()
-        .paginate();
-    const tours = await features.query;
-
-    // ----- Send Response -----
-    // "status" & "results" are Optional. But, nice to have
-    res.status(200).json({
-        status: 'success',
-        results: tours.length,
-        data: {
-            tours, // tours: tours
-        },
-    });
-};
-
-const getTour = async (req, res, next) => {
-    const tour = await Tour.findById(req.params.id).populate('reviews');
-
-    if (!tour) {
-        return next(new AppError('No tour found with that ID', 404));
-    }
-
-    res.status(200).json({
-        status: 'success',
-        data: {
-            tour, // tour: tour
-        },
-    });
-};
-
-const createTour = async (req, res, next) => {
-    const newTour = await Tour.create(req.body); // OR: const newTour = new Tour({}); newTour.save();
-
-    res.status(201).json({
-        status: 'success',
-        data: {
-            tour: newTour,
-        },
-    });
-};
-
-const updateTour = async (req, res, next) => {
-    const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
-        new: true, // new updated object will be returned
-        runValidators: true,
-    });
-
-    if (!tour) {
-        return next(new AppError('No tour found with that ID', 404));
-    }
-
-    res.status(200).json({
-        status: 'Success',
-        data: {
-            tour,
-        },
-    });
-};
-
-const deleteTour = async (req, res, next) => {
-    const tour = await Tour.findByIdAndDelete(req.params.id);
-
-    if (!tour) {
-        return next(new AppError('No tour found with that ID', 404));
-    }
-
-    // Send no data back when deleting something
-    res.status(204).json({
-        status: 'Success',
-        data: null,
-    });
 };
 
 const getTourStats = async (req, res, next) => {
