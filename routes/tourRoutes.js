@@ -30,19 +30,34 @@ router.use('/:tourId/reviews', reviewRouter);
  to use the error handler, just wrap the function with the  "catchAsyncErrors()" function
 */
 
+router
+    .route('/monthly-plan/:year')
+    .get(
+        catchAsyncErrors(protect),
+        restrictRolesTo('admin', 'lead-guide', 'guide'),
+        catchAsyncErrors(getMonthlyPlan)
+    );
 router.route('/tour-stats').get(catchAsyncErrors(getTourStats));
-router.route('/monthly-plan/:year').get(catchAsyncErrors(getMonthlyPlan));
 router.route('/top-5-cheap').get(aliasTopTours, catchAsyncErrors(getAllTours)); // use a middleware(aliasTopTours) to change the request before sending it
 
 // TEMPLATE: router.route('/ROUTE').TYPE(catchAsyncErrors(MIDDLEWARE),  catchAsyncErrors(HANDLER));
 router
     .route('/')
-    .get(catchAsyncErrors(protect), catchAsyncErrors(getAllTours))
-    .post(catchAsyncErrors(createTour));
+    .get(catchAsyncErrors(getAllTours))
+    .post(
+        catchAsyncErrors(protect),
+        restrictRolesTo('admin', 'lead-guide'),
+        catchAsyncErrors(createTour)
+    );
+
 router
     .route('/:id')
     .get(catchAsyncErrors(getTour))
-    .patch(catchAsyncErrors(updateTour))
+    .patch(
+        catchAsyncErrors(protect),
+        restrictRolesTo('admin', 'lead-guide'),
+        catchAsyncErrors(updateTour)
+    )
     .delete(
         catchAsyncErrors(protect),
         restrictRolesTo('admin', 'lead-guide'),

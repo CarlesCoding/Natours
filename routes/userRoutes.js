@@ -16,6 +16,7 @@ import {
     resetPassword,
     protect,
     updatePassword,
+    restrictRolesTo,
 } from '../controllers/authController.js';
 
 const router = express.Router();
@@ -30,26 +31,33 @@ router.post('/login', catchAsyncErrors(login));
 // Password Reset routes
 router.post('/forgotPassword', catchAsyncErrors(forgotPassword));
 router.patch('/resetPassword/:token', catchAsyncErrors(resetPassword));
+
+// Protect all routes in this file, after this point
+router.use(catchAsyncErrors(protect));
+
 router.patch(
     '/updateMyPassword',
-    catchAsyncErrors(protect),
+
     catchAsyncErrors(updatePassword)
 );
 
 // Current User acct management
-router.get('/me', catchAsyncErrors(protect), getMe, catchAsyncErrors(getUser));
+router.get('/me', getMe, catchAsyncErrors(getUser));
 router.patch(
     '/updateMe',
-    catchAsyncErrors(protect),
+
     catchAsyncErrors(updateMe)
 );
 router.delete(
     '/deleteMe',
-    catchAsyncErrors(protect),
+
     catchAsyncErrors(deleteMe)
 );
 
 // -------------------- User Routes -------------------- //
+// Restrict Roles for all routes in this file, after this point
+router.use(restrictRolesTo('admin'));
+
 router.route('/').get(catchAsyncErrors(getAllUsers));
 router.route('/:id').get(getUser).patch(updateUser).delete(deleteUser);
 

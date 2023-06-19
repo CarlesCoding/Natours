@@ -4,6 +4,8 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import Tour from '../../models/tourModel.js';
+import User from '../../models/userModel.js';
+import Review from '../../models/reviewModel.js';
 // ESM Specific quirks (features)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -33,13 +35,20 @@ mongoose.connect(DB, opts).then(
 const tours = JSON.parse(
     fs.readFileSync(path.join(__dirname, 'tours.json'), 'utf-8')
 );
-console.log(tours);
+const users = JSON.parse(
+    fs.readFileSync(path.join(__dirname, 'users.json'), 'utf-8')
+);
+const reviews = JSON.parse(
+    fs.readFileSync(path.join(__dirname, 'reviews.json'), 'utf-8')
+);
 
 // Import data in to database
 // node .\dev-data\data\import-dev-data.js --import
 const importData = async () => {
     try {
         await Tour.create(tours);
+        await User.create(users, { validateBeforeSave: false });
+        await Review.create(reviews);
         console.log(`${tours.length} tours successfully added!`);
     } catch (err) {
         console.log(err);
@@ -52,6 +61,8 @@ const importData = async () => {
 const deleteData = async () => {
     try {
         await Tour.deleteMany(); // Deletes everything in that collection in the DB
+        await User.deleteMany();
+        await Review.deleteMany();
         console.log(`${tours.length} tours successfully deleted! `);
     } catch (err) {
         console.log(err);

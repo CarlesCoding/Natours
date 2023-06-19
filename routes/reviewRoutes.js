@@ -21,11 +21,13 @@ const router = express.Router({ mergeParams: true });
  * So, they can both be handled on the same route all in one place
  */
 
+// Protect every route in this file, after this point
+router.use(catchAsyncErrors(protect));
+
 router
     .route('/')
     .get(catchAsyncErrors(getAllReviews))
     .post(
-        catchAsyncErrors(protect),
         restrictRolesTo('user'),
         setTourUserIds,
         catchAsyncErrors(createReview)
@@ -34,7 +36,7 @@ router
 router
     .route('/:id')
     .get(catchAsyncErrors(getReview))
-    .patch(catchAsyncErrors(updateReview))
-    .delete(catchAsyncErrors(deleteReview));
+    .patch(restrictRolesTo('user', 'admin'), catchAsyncErrors(updateReview))
+    .delete(restrictRolesTo('user', 'admin'), catchAsyncErrors(deleteReview));
 
 export default router;
