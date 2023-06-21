@@ -84,7 +84,7 @@ const getAll = (Model) => async (req, res, next) => {
         .sort()
         .limitFields()
         .paginate();
-    const doc = await features.query;
+    const doc = await features.query; // add ".explain()" to see explanation of query process in command line.
 
     // ----- Send Response -----
     // "status" & "results" are Optional. But, nice to have

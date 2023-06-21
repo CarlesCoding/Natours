@@ -137,6 +137,11 @@ tourSchema.virtual('reviews', {
     localField: '_id',
 });
 
+// -------------------- Index -------------------- //
+// tourSchema.index({ price: 1 });
+tourSchema.index({ price: 1, ratingsAverage: -1 }); // Compound Index
+tourSchema.index({ slug: 1 });
+
 // -------------------- DOCUMENT MIDDLEWARE -------------------- //
 // runs ONLY before .save() and .create(). Has access to 'next()'
 
@@ -174,7 +179,7 @@ tourSchema.pre(/^find/, function (next) {
 
 tourSchema.post(/^find/, function (docs, next) {
     console.log(`Query took ${Date.now() - this.start} milliseconds!`);
-    console.log(docs);
+    // console.log(docs);
     next();
 });
 

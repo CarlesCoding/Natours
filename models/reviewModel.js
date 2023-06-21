@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import Tour from './tourModel.js';
 
 const reviewSchema = new mongoose.Schema(
     {
@@ -8,8 +9,8 @@ const reviewSchema = new mongoose.Schema(
         },
         rating: {
             type: Number,
-            min: [1, 'Rating must be above 1.0'],
-            max: [5, 'Rating must be below 5.0'],
+            min: 1,
+            max: 5,
         },
         createdAt: {
             type: Date,
@@ -45,6 +46,55 @@ reviewSchema.pre(/^find/, function (next) {
     });
 
     next();
+});
+
+// -------------------- Static Methods -------------------- //
+reviewSchema.statics.calcAverageRatings = async function (tourId) {
+    // 'this' is the Model. aggregate has to be called ON the model
+    const stats = await this.aggregate([
+        {
+            $match: { tour: tourId },
+        },
+        {
+            $group: {
+                _id: '$tour',
+                nRating: { $sum: 1 },
+                avgRating: { $avg: '$rating' },
+            },
+        },
+    ]);
+    // console.log(stats);
+    if (stats.length > 0) {
+        await Tour.findById(tourId, {
+            ratingsQuantity: stats[0].nRating,
+            ratingsAverage: stats[0].avgRating,
+        });
+    } else {
+        await Tour.findById(tourId, {
+            ratingsQuantity: 0,
+            ratingsAverage: 4.5,
+        });
+    }
+};
+
+// ---------- MORE QUERY MIDDLEWARE ---------- //
+// Calculate AFTER its saved to the DB
+reviewSchema.post('save', function () {
+    // 'this' points to current review
+    // 'this.constructor' gives us access to the current Model ('Review')
+    this.constructor.calcAverageRatings(this.tour);
+});
+
+reviewSchema.pre(/^findOneAnd/, async function (next) {
+    // 'this'is current query
+    this.r = await this.findOne(); // save variable 'r', to be retrieved in the "post" function below
+    console.log('r', this.r);
+    next();
+});
+
+reviewSchema.post(/^findOneAnd/, async function (next) {
+    // Get the review from the "pre" method above. THEN, use it here to calculate the rating with the updated review
+    await this.r.constructor.calcAverageRatings(this.r.tour);
 });
 
 const Review = mongoose.model('Review', reviewSchema);

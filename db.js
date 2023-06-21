@@ -47,7 +47,6 @@ mongoose.connect(DB, opts).then(
         console.error('connection error:', err);
 
         // if there is a problem close connection to db
-
         mongoose.disconnect();
         process.exit(1);
     }
