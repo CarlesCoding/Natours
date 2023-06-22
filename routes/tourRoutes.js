@@ -9,6 +9,8 @@ import {
     aliasTopTours,
     getTourStats,
     getMonthlyPlan,
+    getToursWithin,
+    getDistances,
     // checkID,
     // checkBody,
 } from '../controllers/tourController.js';
@@ -40,6 +42,16 @@ router
 router.route('/tour-stats').get(catchAsyncErrors(getTourStats));
 router.route('/top-5-cheap').get(aliasTopTours, catchAsyncErrors(getAllTours)); // use a middleware(aliasTopTours) to change the request before sending it
 
+// -------------------- GEOSPATIAL ROUTES -------------------- //
+router
+    .route('/tours-within/:distance/center/:latlng/unit/:unit')
+    .get(catchAsyncErrors(getToursWithin));
+
+router
+    .route('/distances/:latlng/unit/:unit')
+    .get(catchAsyncErrors(getDistances));
+
+// -------------------- GENERAL ROUTES -------------------- //
 // TEMPLATE: router.route('/ROUTE').TYPE(catchAsyncErrors(MIDDLEWARE),  catchAsyncErrors(HANDLER));
 router
     .route('/')

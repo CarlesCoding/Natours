@@ -40,6 +40,7 @@ const tourSchema = new mongoose.Schema(
             default: 4.5,
             min: [1, 'Rating must be above 1.0'],
             max: [5, 'Rating must be below 5.0'],
+            set: (val) => Math.round(val * 10) / 10, // setter function: runs every time there is a new value in the field (4.7777 => 4.7)
         },
         ratingsQuantity: {
             type: Number,
@@ -123,9 +124,8 @@ const tourSchema = new mongoose.Schema(
         toObject: { virtuals: true },
     }
 );
-// -------------------- Virtuals -------------------- //
 
-// Can NOT use virtual properties in query
+// -------------------- Virtuals (Can NOT use virtual properties in query) -------------------- //
 tourSchema.virtual('durationWeeks').get(function () {
     return this.duration / 7;
 });
@@ -138,9 +138,9 @@ tourSchema.virtual('reviews', {
 });
 
 // -------------------- Index -------------------- //
-// tourSchema.index({ price: 1 });
 tourSchema.index({ price: 1, ratingsAverage: -1 }); // Compound Index
-tourSchema.index({ slug: 1 });
+tourSchema.index({ slug: 1 }); // Regular index
+tourSchema.index({ startLocation: '2dsphere' });
 
 // -------------------- DOCUMENT MIDDLEWARE -------------------- //
 // runs ONLY before .save() and .create(). Has access to 'next()'
@@ -184,13 +184,15 @@ tourSchema.post(/^find/, function (docs, next) {
 });
 
 // -------------------- AGGREGATION MIDDLEWARE -------------------- //
-tourSchema.pre('aggregate', function (next) {
-    // 'this' is a aggregation object here.
-    // add '$match' to the beginning of the pipeline array
-    this.pipeline().unshift({ $match: { secretTour: { $ne: true } } }); // filter out the secretTour
-    console.log(this.pipeline());
-    next();
-});
+// Did not Use. This middleware affected the $geoNear: aggregate in tourController.js
+
+// tourSchema.pre('aggregate', function (next) {
+//     // 'this' is a aggregation object here.
+//     // add '$match' to the beginning of the pipeline array
+//     this.pipeline().unshift({ $match: { secretTour: { $ne: true } } }); // filter out the secretTour
+//     console.log(this.pipeline());
+//     next();
+// });
 
 // mongoose.model(nameOfModel, Schema)
 const Tour = mongoose.model('Tour', tourSchema);

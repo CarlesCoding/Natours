@@ -36,6 +36,10 @@ const reviewSchema = new mongoose.Schema(
         toObject: { virtuals: true },
     }
 );
+
+// User can only review a tour 1 time
+reviewSchema.index({ tour: 1, user: 1 }, { unique: true });
+
 // -------------------- QUERY MIDDLEWARE ('this' is a query object here) -------------------- //
 
 // Populate the user & location fields when querying, not just reference ObjectIds (ADDs another query for each .populate() call. Can get pricy/slow in LARGE applications)

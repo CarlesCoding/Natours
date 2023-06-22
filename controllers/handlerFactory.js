@@ -15,13 +15,12 @@ const deleteOne = (Model) => async (req, res, next) => {
     if (!doc) {
         return next(new AppError('No document found with that ID', 404));
     }
-    console.log('here');
+
     // Send no data back when deleting something
     res.status(204).json({
         status: 'Success',
         data: null,
     });
-    console.log('hereAGAIN');
 };
 
 const updateOne = (Model) => async (req, res, next) => {
