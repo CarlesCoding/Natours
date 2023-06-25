@@ -11,6 +11,7 @@ import { fileURLToPath } from 'url';
 import tourRouter from './routes/tourRoutes.js';
 import userRouter from './routes/userRoutes.js';
 import reviewRouter from './routes/reviewRoutes.js';
+import viewRouter from './routes/viewRoutes.js';
 import AppError from './utils/appError.js';
 import globalErrorHandler from './controllers/errorController.js';
 // ESM Specific quirks (features)
@@ -21,7 +22,14 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
+// Tell express to use pug & where the views are
+app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, 'views'));
+
 // ------------------ GLOBAL MIDDLEWARE ------------------ //
+
+// Serve static files from a folder, NOT from a route. In this case static files comes from the 'public' folder.
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Set security HTTP headers
 app.use(helmet());
@@ -64,9 +72,6 @@ app.use(
     })
 );
 
-// Serve static files from a folder, NOT from a route
-app.use(express.static(`${__dirname}/public`));
-
 // TEST MIDDLEWARE: Create own middleware: Adds the time of request to the request call
 app.use((req, res, next) => {
     req.requestTime = new Date().toISOString();
@@ -75,7 +80,8 @@ app.use((req, res, next) => {
 
 // ------------------ ROUTES (These routes are technically middleware) ------------------ //
 
-// (tourRouter & userRouter) is essentially creating a small application for each router, then mount the router to the route.
+// The different 'Routers', is essentially creating a small application for each route, then mount the router to the route.
+app.use('/', viewRouter); // Mounting the router
 app.use('/api/v1/tours', tourRouter); // Mounting the router
 app.use('/api/v1/users', userRouter); // Mounting the router
 app.use('/api/v1/reviews', reviewRouter); // Mounting the router
