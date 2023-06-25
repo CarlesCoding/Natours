@@ -2,7 +2,6 @@
 import './env.js';
 import mongoose from 'mongoose';
 import { app } from './app.js';
-// import { connectDb } from './db.js';
 
 // Catch uncaught exceptions rejections
 process.on('uncaughtException', (err) => {

@@ -81,7 +81,7 @@ app.use('/api/v1/users', userRouter); // Mounting the router
 app.use('/api/v1/reviews', reviewRouter); // Mounting the router
 
 // Middleware added after the routes, in case the request isn't handled in the above routes.
-// It catches all http request types with '.all' and any route with '*'
+// It catches all http request types with '.all()' and any route with '*'
 // if ANYTHING is passed into next(), its assumed its an error.
 // & skips all other middleware & send the error to the global error handling middleware
 app.all('*', (req, res, next) => {
