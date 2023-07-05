@@ -11,7 +11,7 @@ const getOverview = async (req, res, next) => {
 
     // 3.) Render that template using tour data from step 1.
     res.status(200).render('overview', {
-        title: ' All Tours',
+        title: 'All Tours',
         tours,
     });
 };
@@ -35,6 +35,10 @@ const getTour = async (req, res, next) => {
     });
 };
 
-// const getTour = getOne(Tour, { path: 'reviews' });
+const getLoginForm = async (req, res, next) => {
+    res.status(200).render('login', {
+        title: 'Log into your account',
+    });
+};
 
-export { getOverview, getTour };
+export { getOverview, getTour, getLoginForm };
