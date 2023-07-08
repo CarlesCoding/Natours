@@ -3,12 +3,19 @@
   "version": "1.0.0",
   "description": "Learning node, express, and mongoDB",
   "main": "app.js",
+  "targets": {
+    "main": false
+  },
+  "engines": {
+    "node": ">=8.6.0"
+  },
+  "browserslist": "last 2 versions",
+  "type": "module",
   "scripts": {
     "start:dev": "nodemon server.js",
     "start:prod": "cross-env NODE_ENV=production nodemon server.js",
     "debug": "ndb server.js"
   },
-  "type": "module",
   "eslintConfig": {
     "extends": [
       "wesbos"
@@ -36,6 +43,7 @@
   "author": "Beefy",
   "license": "ISC",
   "dependencies": {
+    "axios": "^1.4.0",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
@@ -56,6 +64,7 @@
     "xss-clean": "^0.1.4"
   },
   "devDependencies": {
+    "buffer": "^6.0.3",
     "cross-env": "^7.0.3",
     "eslint-config-wesbos": "^3.2.3"
   }

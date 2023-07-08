@@ -40,7 +40,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors());
 
 // Set security HTTP headers
-app.use(helmet());
+app.use(
+    helmet({
+        scriptSrc: ["'self'", 'https://cdnjs.cloudflare.com', 'unsafe-eval'],
+    })
+);
 
 // LOGGER: only ran in the development environment (good for debugging)
 if (process.env.NODE_ENV === 'development') {

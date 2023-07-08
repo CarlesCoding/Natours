@@ -1,3 +1,4 @@
+/* eslint-disable no-return-await */
 import mongoose from 'mongoose';
 import validator from 'validator';
 import bcrypt from 'bcryptjs';
@@ -85,8 +86,7 @@ userSchema.methods.correctPassword = async function (
     candidatePassword,
     userPassword
 ) {
-    // Return true OR false if passwords match
-    return bcrypt.compare(candidatePassword, userPassword);
+    return await bcrypt.compare(candidatePassword, userPassword);
 };
 
 // Called to check password wasn't changed after JWT was issued
