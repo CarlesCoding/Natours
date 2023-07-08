@@ -17,6 +17,7 @@ import {
     protect,
     updatePassword,
     restrictRolesTo,
+    logout,
 } from '../controllers/authController.js';
 
 const router = express.Router();
@@ -27,6 +28,7 @@ const router = express.Router();
 // Register & Login Routes
 router.post('/signup', catchAsyncErrors(signup));
 router.post('/login', catchAsyncErrors(login));
+router.get('/logout', logout);
 
 // Password Reset routes
 router.post('/forgotPassword', catchAsyncErrors(forgotPassword));

@@ -42,4 +42,24 @@ if (loginForm) {
     });
 }
 
-export { login };
+const logout = async () => {
+  try {
+    const res = await axios({
+      method: 'GET',
+      url: 'http://localhost:3000/api/v1/users/logout',
+    })
+
+    if (res.data.status === 'success') location.reload(true); // Reloads a fresh new page, not from cache.
+  } catch (error) {
+    showAlert('error', 'Error logging out. Try again!')
+  }
+}
+
+// Only add event listener on page with loginForm
+const logOutBtn = document.querySelector('.nav__el--logout');
+console.log(logOutBtn);
+if (logOutBtn) {
+  logOutBtn.addEventListener('click', logout) 
+}
+
+export { login, logout };

@@ -5,6 +5,7 @@ import crypto from 'crypto';
 import User from '../models/userModel.js';
 import AppError from '../utils/appError.js';
 import sendEmail from '../utils/email.js';
+import { showAlert } from '../public/js/alerts.js';
 
 //* Visual representation of how the login process works with JWT. theory-lectures.pdf page: 91
 
@@ -55,25 +56,6 @@ const signup = async (req, res, next) => {
     createAndSentToken(newUser, 201, res);
 };
 
-// const login = async (req, res, next) => {
-//     const { email, password } = req.body;
-
-//     // 1.) Check if email and password exist
-//     if (!email || !password) {
-//         return next(new AppError('Please provide email and password!', 400));
-//     }
-
-//     // 2.) Check if user exist and if password is correct
-//     const user = await User.findOne({ email }).select('+password'); // add back the password field for the query
-
-//     if (!user || !(await user.correctPassword(password, user.password))) {
-//         return next(new AppError('Incorrect email or password', 401));
-//     }
-
-//     // 3.) If Everything is ok, send token to client
-//     createAndSentToken(user, 200, res);
-// };
-
 const login = async (req, res, next) => {
     const { email, password } = req.body;
 
@@ -82,14 +64,11 @@ const login = async (req, res, next) => {
         return next(new AppError('Please provide email and password!', 400));
     }
     // 2) Check if user exists && password is correct
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email }).select('+password'); // add back the password field for the query
 
-    // const bool = await user.correctPassword(password, user.password);
-    // console.log(bool);
     if (!user || !(await user.correctPassword(password, user.password))) {
         return next(new AppError('Incorrect email or password', 401));
     }
-    // console.log('mADE IT IDFSE');
 
     // 3) If everything ok, send token to client
     createAndSentToken(user, 200, res);
@@ -98,29 +77,45 @@ const login = async (req, res, next) => {
 // Only for rendered pages, there will be NO errors!
 const isLoggedIn = async (req, res, next) => {
     if (req.cookies.jwt) {
-        // 1.) Validate the token (Makes sure that no one has altered the JWT payload)
-        const verifiedUser = await promisify(jwt.verify)(
-            req.cookies.jwt,
-            process.env.TOKEN_SECRET
-        );
+        try {
+            // 1.) Validate the token (Makes sure that no one has altered the JWT payload)
+            const verifiedUser = await promisify(jwt.verify)(
+                req.cookies.jwt,
+                process.env.TOKEN_SECRET
+            );
 
-        // 2.) Check if user still exist
-        const currentUser = await User.findById(verifiedUser.id);
-        if (!currentUser) {
+            // 2.) Check if user still exist
+            const currentUser = await User.findById(verifiedUser.id);
+            if (!currentUser) {
+                return next();
+            }
+
+            // 3.) Check if user changed password after the JWT was issued
+            if (currentUser.changedPasswordAfter(verifiedUser.iat)) {
+                return next();
+            }
+
+            // THERE IS A LOGGED IN USER
+            res.locals.user = currentUser; // All pug templates have access to res.locals. Add data here to be made accessible
+            return next();
+        } catch (error) {
             return next();
         }
-
-        // 3.) Check if user changed password after the JWT was issued
-        if (currentUser.changedPasswordAfter(verifiedUser.iat)) {
-            return next();
-        }
-
-        // GRANT ACCESS TO PROTECTED ROUTE
-        res.locals.user = currentUser; // All pug templates have access to res.locals. Add data here to be made accessible
-        return next();
     }
 
     next();
+};
+
+// To logout: hit the logout endpoint. Send a new token with dummy text.
+// This overrides the existing cookie, rendering the new one invalid, affectively logging out the user.
+const logout = (req, res) => {
+    res.cookie('jwt', 'loggedout', {
+        expires: new Date(Date.now() + 1 * 1000),
+        httpOnly: true,
+    });
+    res.status(200).json({
+        status: 'success',
+    });
 };
 
 // Middleware to protect routes. (Must have valid token to visit route)
@@ -299,4 +294,5 @@ export {
     resetPassword,
     updatePassword,
     isLoggedIn,
+    logout,
 };
