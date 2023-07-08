@@ -5,15 +5,20 @@ import helmet from 'helmet';
 import mongoSanitize from 'express-mongo-sanitize';
 import xss from 'xss-clean';
 import hpp from 'hpp';
+import cookieParser from 'cookie-parser';
 
 import path from 'path';
 import { fileURLToPath } from 'url';
+import cors from 'cors';
 import tourRouter from './routes/tourRoutes.js';
 import userRouter from './routes/userRoutes.js';
 import reviewRouter from './routes/reviewRoutes.js';
 import viewRouter from './routes/viewRoutes.js';
 import AppError from './utils/appError.js';
 import globalErrorHandler from './controllers/errorController.js';
+
+// Set security HTTP headers
+// app.use(helmet());
 // ESM Specific quirks (features)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -31,6 +36,9 @@ app.set('views', path.join(__dirname, 'views'));
 // Serve static files from a folder, NOT from a route. In this case static files comes from the 'public' folder.
 app.use(express.static(path.join(__dirname, 'public')));
 
+// IMPORTANT: Cors to allow the server and client to talk to each other
+app.use(cors());
+
 // Set security HTTP headers
 app.use(helmet());
 
@@ -46,11 +54,12 @@ const limiter = rateLimit({
     message: `To many request from this IP, please try again in an hour!`,
 });
 
-// use the limiter on ALL routes that start with /api
+// Use the limiter on ALL routes that start with /api
 app.use('/api', limiter);
 
 // Body parser, reading data from the body into req.body (json)
 app.use(express.json({ limit: '10kb' }));
+app.use(cookieParser());
 
 // DATA SANITIZATION against NoSQL query injection
 app.use(mongoSanitize());
@@ -75,6 +84,7 @@ app.use(
 // TEST MIDDLEWARE: Create own middleware: Adds the time of request to the request call
 app.use((req, res, next) => {
     req.requestTime = new Date().toISOString();
+    console.log('TEST', req.cookies);
     next();
 });
 

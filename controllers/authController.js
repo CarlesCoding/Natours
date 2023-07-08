@@ -8,14 +8,14 @@ import sendEmail from '../utils/email.js';
 
 //* Visual representation of how the login process works with JWT. theory-lectures.pdf page: 91
 
-const signtoken = (id) =>
+const signToken = (id) =>
     // jwt.sign(payload, secret, {Options})
     jwt.sign({ id }, process.env.TOKEN_SECRET, {
         expiresIn: process.env.JWT_EXPIRES_IN,
     });
 
 const createAndSentToken = (user, statusCode, res) => {
-    const token = signtoken(user._id);
+    const token = signToken(user._id);
     const cookieOpts = {
         expires: new Date(
             Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
@@ -82,6 +82,8 @@ const protect = async (req, res, next) => {
     // Old way: req.headers.authorization && req.headers.authorization.startsWith('Bearer');
     if (req.headers.authorization?.startsWith('Bearer')) {
         token = req.headers.authorization.split(' ')[1];
+    } else if (req.cookies.jwt) {
+        token = req.cookies.jwt;
     }
 
     if (!token) {
