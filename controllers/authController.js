@@ -99,6 +99,8 @@ const isLoggedIn = async (req, res, next) => {
             res.locals.user = currentUser; // All pug templates have access to res.locals. Add data here to be made accessible
             return next();
         } catch (error) {
+            // After clicking logout, the isLoggedIn() will throw an error because the jwt will be invalid,
+            // instead of sending the error to global handler, just skip this check with next()
             return next();
         }
     }
