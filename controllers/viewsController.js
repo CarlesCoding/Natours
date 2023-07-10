@@ -1,5 +1,3 @@
-// Pass in the variables you want to be displayed on the pug template as options: .render('file', {opts}).
-
 import Tour from '../models/tourModel.js';
 import AppError from '../utils/appError.js';
 
@@ -29,6 +27,7 @@ const getTour = async (req, res, next) => {
     // 2.) Build template
 
     // 3.) Render the template using data from step
+    // Pass in the variables you want to be displayed on the pug template as options: .render('file', {opts}).
     res.status(200).render('tour', {
         title: `${tour.name} Tour`,
         tour,
@@ -41,4 +40,16 @@ const getLoginForm = (req, res) => {
     });
 };
 
-export { getOverview, getTour, getLoginForm };
+const signUpForm = (req, res) => {
+    res.status(200).render('signup', {
+        title: 'Sign up for an account',
+    });
+};
+
+const getAccountPage = (req, res) => {
+    res.status(200).render('account', {
+        title: 'Account',
+    });
+};
+
+export { getOverview, getTour, getLoginForm, getAccountPage, signUpForm };

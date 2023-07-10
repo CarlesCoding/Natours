@@ -5,7 +5,6 @@ import crypto from 'crypto';
 import User from '../models/userModel.js';
 import AppError from '../utils/appError.js';
 import sendEmail from '../utils/email.js';
-import { showAlert } from '../public/js/alerts.js';
 
 //* Visual representation of how the login process works with JWT. theory-lectures.pdf page: 91
 

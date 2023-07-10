@@ -3,6 +3,8 @@ import {
     getOverview,
     getTour,
     getLoginForm,
+    getAccountPage,
+    signUpForm,
 } from '../controllers/viewsController.js';
 import catchAsyncErrors from '../utils/catchAsyncErrors.js';
 import { isLoggedIn } from '../controllers/authController.js';
@@ -15,5 +17,7 @@ router.use(isLoggedIn);
 router.get('/', catchAsyncErrors(getOverview));
 router.get('/tour/:slug', catchAsyncErrors(getTour));
 router.get('/login', getLoginForm);
+router.get('/signup', signUpForm);
+router.get('/account', getAccountPage);
 
 export default router;

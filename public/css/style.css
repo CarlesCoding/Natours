@@ -1221,7 +1221,8 @@ body {
   margin: 0 auto;
 }
 
-.login-form {
+.login-form,
+.signup-form {
   margin: 0 auto;
   max-width: 55rem;
   background-color: #fff;
@@ -1322,3 +1323,4 @@ body {
   -webkit-transform: translateY(-2px);
   transform: translateY(-2px);
 }
+
