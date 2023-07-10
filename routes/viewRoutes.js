@@ -5,19 +5,24 @@ import {
     getLoginForm,
     getAccountPage,
     signUpForm,
+    updateUserData,
 } from '../controllers/viewsController.js';
 import catchAsyncErrors from '../utils/catchAsyncErrors.js';
-import { isLoggedIn } from '../controllers/authController.js';
+import { isLoggedIn, protect } from '../controllers/authController.js';
 
 const router = express.Router();
 
-router.use(isLoggedIn);
-
 // Don't need 'router.route().get()'. Because, Almost always use .get() to render the html to the page.
-router.get('/', catchAsyncErrors(getOverview));
-router.get('/tour/:slug', catchAsyncErrors(getTour));
-router.get('/login', getLoginForm);
-router.get('/signup', signUpForm);
-router.get('/account', getAccountPage);
+router.get('/', isLoggedIn, catchAsyncErrors(getOverview));
+router.get('/tour/:slug', isLoggedIn, catchAsyncErrors(getTour));
+router.get('/login', isLoggedIn, getLoginForm);
+router.get('/signup', isLoggedIn, signUpForm);
+router.get('/account', catchAsyncErrors(protect), getAccountPage);
+
+router.patch(
+    '/updateMe',
+    catchAsyncErrors(protect),
+    catchAsyncErrors(updateUserData)
+);
 
 export default router;

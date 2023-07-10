@@ -169,6 +169,7 @@ const protect = async (req, res, next) => {
 
     // GRANT ACCESS TO PROTECTED ROUTE
     req.user = currentUser; // add the current user to the request. So, it can be used by other middleware AFTER this has been ran.
+    res.locals.user = currentUser;
     next();
 };
 

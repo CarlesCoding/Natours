@@ -1,4 +1,5 @@
 import Tour from '../models/tourModel.js';
+import User from '../models/userModel.js';
 import AppError from '../utils/appError.js';
 
 const getOverview = async (req, res, next) => {
@@ -48,8 +49,34 @@ const signUpForm = (req, res) => {
 
 const getAccountPage = (req, res) => {
     res.status(200).render('account', {
-        title: 'Account',
+        title: 'Your account',
     });
 };
 
-export { getOverview, getTour, getLoginForm, getAccountPage, signUpForm };
+const updateUserData = async (req, res, next) => {
+    const updatedUser = await User.findByIdAndUpdate(
+        req.user.id,
+        {
+            name: req.body.name,
+            email: req.body.email,
+        },
+        {
+            new: true,
+            runValidators: true,
+        }
+    );
+
+    res.status(200).render('account', {
+        title: 'Your account',
+        user: updatedUser,
+    });
+};
+
+export {
+    getOverview,
+    getTour,
+    getLoginForm,
+    getAccountPage,
+    signUpForm,
+    updateUserData,
+};
