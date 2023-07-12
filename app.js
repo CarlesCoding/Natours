@@ -89,7 +89,7 @@ app.use(
 // TEST MIDDLEWARE: Create own middleware: Adds the time of request to the request call
 app.use((req, res, next) => {
     req.requestTime = new Date().toISOString();
-    console.log('TEST', req.cookies);
+    // console.log('JWT_DISPLAYED', req.cookies);
     next();
 });
 

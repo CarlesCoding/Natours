@@ -1,7 +1,42 @@
+import multer from 'multer';
 import User from '../models/userModel.js';
 import AppError from '../utils/appError.js';
 import { deleteOne, updateOne, getOne, getAll } from './handlerFactory.js';
 
+// -------------------- MULTER (img upload) -------------------- //
+
+// How you want to save the file. cb: callBack
+const multerStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'public/img/users');
+    },
+    filename: (req, file, cb) => {
+        const extensionType = file.mimetype.split('/')[1]; // image/jpg
+        // Save file as: user-userID-Date.jpg
+        cb(null, `user-${req.user.id}-${Date.now()}.${extensionType}`);
+    },
+});
+
+// Filter to make sure ONLY images are uploaded.
+const multerFilter = (req, file, cb) => {
+    file.mimetype.startsWith('image') // image/jpg
+        ? cb(null, true)
+        : cb(
+              new AppError('Not an image! Please upload only images.', 400),
+              false
+          );
+};
+
+// Multer Image Upload Object
+const upload = multer({
+    storage: multerStorage,
+    fileFilter: multerFilter,
+});
+
+// Middleware
+const uploadUserPhoto = upload.single('photo');
+
+// -------------------- CONTROLLERS -------------------- //
 const filterObj = (obj, ...allowedFields) => {
     const newObj = {};
     Object.keys(obj).forEach((el) => {
@@ -23,7 +58,8 @@ const updateMe = async (req, res, next) => {
     }
 
     // 2.) Filter out unwanted field names that are not allowed to be updated. Prevents users from changing their role, token, ect.
-    const filteredBody = filterObj(req.body, 'name', 'email');
+    const filteredBody = filterObj(req.body, 'name', 'email'); // Filter everything BUT name & email
+    if (req.file) filteredBody.photo = req.file.filename; // Adding photo object to updated user data. *Save file as file name
 
     // 3.) Update user document
     const updatedUser = await User.findByIdAndUpdate(
@@ -76,4 +112,5 @@ export {
     updateMe,
     deleteMe,
     getMe,
+    uploadUserPhoto,
 };
