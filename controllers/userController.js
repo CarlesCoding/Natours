@@ -1,21 +1,12 @@
 import multer from 'multer';
+import sharp from 'sharp'; // For img resizing
 import User from '../models/userModel.js';
 import AppError from '../utils/appError.js';
 import { deleteOne, updateOne, getOne, getAll } from './handlerFactory.js';
 
 // -------------------- MULTER (img upload) -------------------- //
-
-// How you want to save the file. cb: callBack
-const multerStorage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'public/img/users');
-    },
-    filename: (req, file, cb) => {
-        const extensionType = file.mimetype.split('/')[1]; // image/jpg
-        // Save file as: user-userID-Date.jpg
-        cb(null, `user-${req.user.id}-${Date.now()}.${extensionType}`);
-    },
-});
+// Saves the img as a 'buffer'
+const multerStorage = multer.memoryStorage();
 
 // Filter to make sure ONLY images are uploaded.
 const multerFilter = (req, file, cb) => {
@@ -33,8 +24,23 @@ const upload = multer({
     fileFilter: multerFilter,
 });
 
-// Middleware
-const uploadUserPhoto = upload.single('photo');
+// Multer Middleware
+const uploadUserPhoto = upload.single('photo'); // .single: only one img uploaded. 'photo': the field in the form that is uploading img.
+
+const resizeUserPhoto = (req, res, next) => {
+    if (!req.file) return next();
+
+    req.file.filename = `user-${req.user.id}-${Date.now()}.jpeg`;
+
+    // Save to memory NOT disk.
+    sharp(req.file.buffer)
+        .resize(500, 500)
+        .toFormat('jpeg')
+        .jpeg({ quality: 90 })
+        .toFile(`public/img/users/${req.file.filename}`);
+
+    next();
+};
 
 // -------------------- CONTROLLERS -------------------- //
 const filterObj = (obj, ...allowedFields) => {
@@ -113,4 +119,5 @@ export {
     deleteMe,
     getMe,
     uploadUserPhoto,
+    resizeUserPhoto,
 };

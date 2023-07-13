@@ -8,6 +8,7 @@ import {
     deleteMe,
     getMe,
     uploadUserPhoto,
+    resizeUserPhoto,
 } from '../controllers/userController.js';
 import catchAsyncErrors from '../utils/catchAsyncErrors.js';
 import {
@@ -42,8 +43,13 @@ router.use(catchAsyncErrors(protect));
 // Current User acct management
 router.patch('/updateMyPassword', catchAsyncErrors(updatePassword));
 router.get('/me', getMe, catchAsyncErrors(getUser));
-router.patch('/updateMe', uploadUserPhoto, catchAsyncErrors(updateMe)); // .single: only one img uploaded. 'photo': the field in the form that is uploading img.
 router.delete('/deleteMe', catchAsyncErrors(deleteMe));
+router.patch(
+    '/updateMe',
+    uploadUserPhoto,
+    resizeUserPhoto,
+    catchAsyncErrors(updateMe)
+);
 
 // -------------------- User Routes -------------------- //
 // Restrict Roles for all routes in this file, after this point

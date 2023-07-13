@@ -34,19 +34,20 @@ const UserPasswordForm = document.querySelector('.form-user-password');
 if (UserUpdateForm) {
   UserUpdateForm.addEventListener('submit', (e) => {
     e.preventDefault();
+    const form = new FormData();
+    form.append('name', document.getElementById('name').value);
+    form.append('email', document.getElementById('email').value);
+    form.append('photo', document.getElementById('photo').files[0]);
+    console.log('form', form);
 
-    const name = document.getElementById('name').value;
-    const email = document.getElementById('email').value;
-    updateUserSettings({ name, email }, 'data');
+    updateUserSettings(form, 'data');
   });
 }
 
 if (UserPasswordForm) {
   UserPasswordForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    document.querySelector('.btn--save-password').textContent = 'Updating...'
-
-    
+    document.querySelector('.btn--save-password').textContent = 'Updating...';
 
     const passwordCurrent = document.getElementById('password-current').value;
     const password = document.getElementById('password').value;
@@ -57,7 +58,7 @@ if (UserPasswordForm) {
     );
 
     // Empty the password fields on submit
-    document.querySelector('.btn--save-password').textContent = 'Save password'
+    document.querySelector('.btn--save-password').textContent = 'Save password';
     document.getElementById('password-current').value = '';
     document.getElementById('password').value = '';
     document.getElementById('password-confirm').value = '';

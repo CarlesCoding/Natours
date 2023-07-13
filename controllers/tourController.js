@@ -1,3 +1,5 @@
+import multer from 'multer';
+import sharp from 'sharp'; // For img resizing
 import Tour from '../models/tourModel.js';
 import AppError from '../utils/appError.js';
 import {
@@ -7,6 +9,35 @@ import {
     getOne,
     getAll,
 } from './handlerFactory.js';
+
+// -------------------- MULTER: TOUR IMGS (img upload ) -------------------- //
+const multerStorage = multer.memoryStorage();
+
+// Filter to make sure ONLY images are uploaded.
+const multerFilter = (req, file, cb) => {
+    file.mimetype.startsWith('image') // image/jpg
+        ? cb(null, true)
+        : cb(
+              new AppError('Not an image! Please upload only images.', 400),
+              false
+          );
+};
+
+// Multer Image Upload Object
+const upload = multer({
+    storage: multerStorage,
+    fileFilter: multerFilter,
+});
+
+// -------------------- Multer Middleware -------------------- //
+// If theres a mix of imgs, use fields
+const uploadTour = upload.fields([
+    { name: 'imageCover', maxCount: 1 },
+    { name: 'images', maxCount: 3 },
+]);
+
+// upload.single('images'); // If there is only 1 img
+// upload.array('images', 5); // If there is multiple images with same name, max 5.
 
 // ----- TOURS -----
 const getAllTours = getAll(Tour);
