@@ -11,6 +11,8 @@ import {
     getMonthlyPlan,
     getToursWithin,
     getDistances,
+    uploadTourImages,
+    resizeTourImages,
     // checkID,
     // checkBody,
 } from '../controllers/tourController.js';
@@ -68,6 +70,8 @@ router
     .patch(
         catchAsyncErrors(protect),
         restrictRolesTo('admin', 'lead-guide'),
+        uploadTourImages,
+        catchAsyncErrors(resizeTourImages),
         catchAsyncErrors(updateTour)
     )
     .delete(

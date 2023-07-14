@@ -30,16 +30,57 @@ const upload = multer({
 });
 
 // -------------------- Multer Middleware -------------------- //
-// If theres a mix of imgs, use fields
-const uploadTour = upload.fields([
+// upload.single('images'); // If there is only 1 img
+// upload.array('images', 5); // If there is multiple images with same name, max 5.
+// If theres a mix of imgs, use fields.
+const uploadTourImages = upload.fields([
     { name: 'imageCover', maxCount: 1 },
     { name: 'images', maxCount: 3 },
 ]);
 
-// upload.single('images'); // If there is only 1 img
-// upload.array('images', 5); // If there is multiple images with same name, max 5.
+const resizeTourImages = async (req, res, next) => {
+    if (!req.files.imageCover || !req.files.images) return next();
 
-// ----- TOURS -----
+    // 1.) COVER IMAGE
+    // Add the cover image to the req body
+    req.body.imageCover = `tour-${req.params.id}-${Date.now()}-cover.jpeg`;
+
+    // Save to memory NOT disk.
+    await sharp(req.files.imageCover[0].buffer)
+        .resize(2000, 1333)
+        .toFormat('jpeg')
+        .jpeg({ quality: 90 })
+        .toFile(`public/img/tours/${req.body.imageCover}`);
+
+    // 2.) IMAGES
+    // Create new array that holds all the images
+    req.body.images = [];
+
+    // Async/await will NOT work in the loop. Use Promise.all() to await for the whole process to complete before calling next().
+    // .map() allows to save an array of promises. The array allows to use promise.all()
+    await Promise.all(
+        // Loop through images array, sizing all and pushing to the newly created array
+        req.files.images.map(async (file, i) => {
+            const filename = `tour-${req.params.id}-${Date.now()}-${
+                i + 1
+            }.jpeg`;
+
+            // Resize the image
+            await sharp(file.buffer)
+                .resize(2000, 1333)
+                .toFormat('jpeg')
+                .jpeg({ quality: 90 })
+                .toFile(`public/img/tours/${filename}`);
+
+            // Add the images to the req body
+            req.body.images.push(filename);
+        })
+    );
+
+    next();
+};
+
+// -------------------- TOURS -------------------- //
 const getAllTours = getAll(Tour);
 
 const getTour = getOne(Tour, { path: 'reviews' }); // "{ path: 'reviews' }" is the field we want populated
@@ -232,4 +273,6 @@ export {
     getMonthlyPlan,
     getToursWithin,
     getDistances,
+    uploadTourImages,
+    resizeTourImages,
 };

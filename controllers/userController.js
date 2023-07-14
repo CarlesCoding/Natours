@@ -27,13 +27,13 @@ const upload = multer({
 // Multer Middleware
 const uploadUserPhoto = upload.single('photo'); // .single: only one img uploaded. 'photo': the field in the form that is uploading img.
 
-const resizeUserPhoto = (req, res, next) => {
+const resizeUserPhoto = async (req, res, next) => {
     if (!req.file) return next();
 
     req.file.filename = `user-${req.user.id}-${Date.now()}.jpeg`;
 
     // Save to memory NOT disk.
-    sharp(req.file.buffer)
+    await sharp(req.file.buffer)
         .resize(500, 500)
         .toFormat('jpeg')
         .jpeg({ quality: 90 })

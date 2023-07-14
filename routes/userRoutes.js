@@ -47,7 +47,7 @@ router.delete('/deleteMe', catchAsyncErrors(deleteMe));
 router.patch(
     '/updateMe',
     uploadUserPhoto,
-    resizeUserPhoto,
+    catchAsyncErrors(resizeUserPhoto),
     catchAsyncErrors(updateMe)
 );
 
