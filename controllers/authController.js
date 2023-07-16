@@ -4,7 +4,7 @@ import { promisify } from 'util';
 import crypto from 'crypto';
 import User from '../models/userModel.js';
 import AppError from '../utils/appError.js';
-import sendEmail from '../utils/email.js';
+import Email from '../utils/email.js';
 
 //* Visual representation of how the login process works with JWT. theory-lectures.pdf page: 91
 
@@ -51,6 +51,11 @@ const signup = async (req, res, next) => {
         passwordChangedAt: Date.now(),
         role: req.body.role,
     });
+
+    // const url = `http://localhost:3000/account`;
+    const url = `${req.protocol}://${req.get('host')}/account`;
+    console.log(url);
+    await new Email(newUser, url).sendWelcome();
 
     createAndSentToken(newUser, 201, res);
 };
@@ -204,21 +209,16 @@ const forgotPassword = async (req, res, next) => {
     // validateBeforeSave: skips running the validation again (it would fail since not all required info is provided here, just the resetToken)
     await user.save({ validateBeforeSave: false });
 
-    // 3.) Send it to users email
-    const resetURL = `${req.protocol}://${req.get(
-        'host'
-    )}/api/v1/users/resetPassword/${resetToken}`;
-
-    const message = `Forgot your password? Submit a PATCH request with your new password and passwordConfirm to: ${resetURL}.\nIf you didn't forget your password, please ignore this email.`;
-
-    await sendEmail({
-        email: user.email,
-        subject: `Your valid reset token (valid for 10 min)`,
-        message,
-    });
-
-    // 4.) Send Res to client (try catch here, because we need to change back (invalidate) the tokens if their is an error.)
+    // (Try catch here, because we need to change back (invalidate) the tokens if their is an error.)
     try {
+        // 3.) Send it to users email
+        const resetURL = `${req.protocol}://${req.get(
+            'host'
+        )}/api/v1/users/resetPassword/${resetToken}`;
+
+        await new Email(user, resetURL).sendPasswordReset();
+
+        // 4.) Send Res to client
         res.status(200).json({
             status: 'success',
             message: 'Token sent to email!',
