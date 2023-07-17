@@ -13,6 +13,7 @@ import cors from 'cors';
 import tourRouter from './routes/tourRoutes.js';
 import userRouter from './routes/userRoutes.js';
 import reviewRouter from './routes/reviewRoutes.js';
+import bookingRouter from './routes/bookingRoutes.js';
 import viewRouter from './routes/viewRoutes.js';
 import AppError from './utils/appError.js';
 import globalErrorHandler from './controllers/errorController.js';
@@ -100,6 +101,7 @@ app.use('/', viewRouter); // Mounting the router
 app.use('/api/v1/tours', tourRouter); // Mounting the router
 app.use('/api/v1/users', userRouter); // Mounting the router
 app.use('/api/v1/reviews', reviewRouter); // Mounting the router
+app.use('/api/v1/bookings', bookingRouter); // Mounting the router
 
 // Middleware added after the routes, in case the request isn't handled in the above routes.
 // It catches all http request types with '.all()' and any route with '*'

@@ -27,6 +27,8 @@ const updateUserSettings = async (data, type) => {
   }
 };
 
+
+// -------------------- Event Listeners --------------------
 // Only add event listener on page with updateForm
 const UserUpdateForm = document.querySelector('.form-user-data');
 const UserPasswordForm = document.querySelector('.form-user-password');

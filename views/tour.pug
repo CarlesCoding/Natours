@@ -4,8 +4,12 @@ include mixins/_reviewCard
 
 //- 'append' injects the head into the head of base.pug (adds it to whats already there)
 block append head
+  //- Mapbox CDN. (like, npm mapbox)
   script(src="https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js") 
   link(href='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.css' rel='stylesheet')
+  //- ES Module Stripe.js SDK (like, npm stripe) For Frontend
+  script(src="https://js.stripe.com/v3/") 
+
 
 
 
@@ -100,4 +104,8 @@ block content
       .cta__content
         h2.heading-secondary What are you waiting for?
         p.cta__text= `${tour.duration} days. 1 adventure. Infinite memories. Make it yours today!`
-        button.btn.btn--green.span-all-rows Book tour now!
+        if user
+          //- Supply the tour id when the btn is clicked
+          button.btn.btn--green.span-all-rows#book-tour(data-tour-id=`${tour.id}`) Book tour now!
+        else
+          a.btn.btn--green.span-all-rows(href='/login') Log in to book tour!
