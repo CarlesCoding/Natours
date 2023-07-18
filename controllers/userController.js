@@ -18,7 +18,7 @@ const multerFilter = (req, file, cb) => {
           );
 };
 
-// Multer Image Upload Object
+// -------------------- MULTER Image Upload Object -------------------- //
 const upload = multer({
     storage: multerStorage,
     fileFilter: multerFilter,

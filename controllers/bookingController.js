@@ -1,6 +1,13 @@
 import Stripe from 'stripe';
 import Tour from '../models/tourModel.js';
 import Booking from '../models/bookingModel.js';
+import {
+    deleteOne,
+    updateOne,
+    getOne,
+    getAll,
+    createOne,
+} from './handlerFactory.js';
 // import {} from './handlerFactory.js';
 
 // The package needs to be configured with your account's secret key.
@@ -60,4 +67,18 @@ const createBookingsCheckout = async (req, res, next) => {
     res.redirect(req.originalUrl.split('?')[0]);
 };
 
-export { getCheckoutSession, createBookingsCheckout };
+const createBooking = createOne(Booking);
+const deleteBooking = deleteOne(Booking);
+const updateBooking = updateOne(Booking);
+const getBooking = getOne(Booking);
+const getAllBooking = getAll(Booking);
+
+export {
+    getCheckoutSession,
+    createBookingsCheckout,
+    createBooking,
+    deleteBooking,
+    updateBooking,
+    getBooking,
+    getAllBooking,
+};
