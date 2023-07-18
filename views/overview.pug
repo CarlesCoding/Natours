@@ -2,8 +2,10 @@ extends base
 
 block content
   main.main
+    - title ? title : ''
+    .title= `${title}`  
     .card-container
-
+        
       each tour in tours
         .card
           .card__header

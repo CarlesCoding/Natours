@@ -1,6 +1,6 @@
 import Stripe from 'stripe';
 import Tour from '../models/tourModel.js';
-// import AppError from '../utils/appError.js';
+import Booking from '../models/bookingModel.js';
 // import {} from './handlerFactory.js';
 
 // The package needs to be configured with your account's secret key.
@@ -14,7 +14,9 @@ const getCheckoutSession = async (req, res, next) => {
     const session = await stripe.checkout.sessions.create({
         // Session info
         payment_method_types: ['card'],
-        success_url: `${req.protocol}://${req.get('host')}/`,
+        success_url: `${req.protocol}://${req.get('host')}/?tour=${
+            req.params.tourID
+        }&user=${req.user.id}&price=${tour.price}`,
         cancel_url: `${req.protocol}://${req.get('host')}/tour/${tour.slug}`,
         customer_email: req.user.email,
         client_reference_id: req.params.tourID,
@@ -45,4 +47,17 @@ const getCheckoutSession = async (req, res, next) => {
     });
 };
 
-export { getCheckoutSession };
+const createBookingsCheckout = async (req, res, next) => {
+    // This is only TEMPORARY, because it's UNSECURE: everyone can make bookings without paying.
+    const { tour, user, price } = req.query;
+
+    if (!tour && !user && !price) return next();
+
+    // Create new booking
+    await Booking.create({ tour, user, price });
+
+    // Redirect back to homepage WITHOUT the query attached
+    res.redirect(req.originalUrl.split('?')[0]);
+};
+
+export { getCheckoutSession, createBookingsCheckout };

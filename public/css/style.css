@@ -1324,3 +1324,16 @@ body {
   transform: translateY(-2px);
 }
 
+.title {
+  font-size: 5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: -4rem;
+}
+
+.card-container {
+  margin-top: 2rem;
+}
+

@@ -1,5 +1,6 @@
 import Tour from '../models/tourModel.js';
 import User from '../models/userModel.js';
+import Booking from '../models/bookingModel.js';
 import AppError from '../utils/appError.js';
 
 const getOverview = async (req, res, next) => {
@@ -72,6 +73,21 @@ const updateUserData = async (req, res, next) => {
     });
 };
 
+// CAN ALSO DO THE FOLLOWING WITH VIRTUAL POPULATE
+const getMyBookings = async (req, res, next) => {
+    // 1.) Find all bookings
+    const bookings = await Booking.find({ user: req.user.id });
+
+    // 2.) Find tours with the returned ids
+    const tourIDs = bookings.map((el) => el.tour); // Create a new array with tour IDs
+    const tours = await Tour.find({ _id: { $in: tourIDs } });
+
+    res.status(200).render('overview', {
+        title: 'My Bookings',
+        tours,
+    });
+};
+
 export {
     getOverview,
     getTour,
@@ -79,4 +95,5 @@ export {
     getAccountPage,
     signUpForm,
     updateUserData,
+    getMyBookings,
 };
