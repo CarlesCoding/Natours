@@ -6,6 +6,7 @@ import mongoSanitize from 'express-mongo-sanitize';
 import xss from 'xss-clean';
 import hpp from 'hpp';
 import cookieParser from 'cookie-parser';
+import compression from 'compression';
 
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -27,6 +28,9 @@ const __dirname = path.dirname(__filename);
 //* app.js mostly used for middleware decelerations. Server.js will be the entry point
 
 const app = express();
+
+// Allows the app to trust proxies (example: Heroku)
+app.enable('trust proxy');
 
 // Tell express to use pug & where the views are
 app.set('view engine', 'pug');
@@ -86,6 +90,9 @@ app.use(
         ],
     })
 );
+
+// Compress text response
+app.use(compression());
 
 // TEST MIDDLEWARE: Create own middleware: Adds the time of request to the request call
 app.use((req, res, next) => {

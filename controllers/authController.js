@@ -14,13 +14,15 @@ const signToken = (id) =>
         expiresIn: process.env.JWT_EXPIRES_IN,
     });
 
-const createAndSentToken = (user, statusCode, res) => {
+const createAndSentToken = (user, statusCode, res, req) => {
     const token = signToken(user._id);
     const cookieOpts = {
         expires: new Date(
             Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
         ),
         httpOnly: true, // (receive  cookie => store cookie => send with every req) helps prevent cross-site-scripting attacks
+        // If using heroku add the below code. And, Delete the if statement below.
+        // secure: req.secure || req.headers('x-forwarded-proto') === 'https',
     };
 
     // In production we will be using HTTPS. Local = HTTP.
@@ -54,7 +56,6 @@ const signup = async (req, res, next) => {
 
     // const url = `http://localhost:3000/account`;
     const url = `${req.protocol}://${req.get('host')}/account`;
-    console.log(url);
     await new Email(newUser, url).sendWelcome();
 
     createAndSentToken(newUser, 201, res);

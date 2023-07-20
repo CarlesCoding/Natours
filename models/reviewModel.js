@@ -89,7 +89,6 @@ reviewSchema.post('save', function () {
 reviewSchema.pre(/^findOneAnd/, async function (next) {
     // 'this'is current query
     this.r = await this.findOne(); // save variable 'r', to be retrieved in the "post" function below
-    console.log('r', this.r);
     next();
 });
 

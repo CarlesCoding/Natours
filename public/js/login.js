@@ -5,6 +5,13 @@ import { showAlert } from './alerts.js';
  * ******* API CALLS *******
  * Has to use http://localhost:3000/
  * http://127.0.0.1:3000 WILL NOT WORK. CORS :/
+ * 
+ * 
+ * In local environment OR if the backend & frontend are hosted on diff urls use:
+ * http://localhost:3000/api/v1/users/login
+ * 
+ * OTHERWISE, IF ON SAME URL, ABLE TO USE:
+ * /api/v1/users/login
  */
 
 // -------------------- LOGIN -------------------- //
@@ -77,7 +84,7 @@ const signup = async (name, email, password, passwordConfirm) => {
         name,
         email,
         password,
-        passwordConfirm,
+        passwordConfirm, //! FIX THIS; NO NEED PASSWORDCONFIRM SILLY
       },
     });
 
@@ -95,22 +102,13 @@ const signup = async (name, email, password, passwordConfirm) => {
 
 // Only add event listener on page with signupForm
 const signupForm = document.querySelector('.signup-form');
-
 if (signupForm) {
   signupForm.querySelector('.form').addEventListener('submit', (e) => {
     e.preventDefault();
-
     const name = document.getElementById('name').value;
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     const passwordConfirm = document.getElementById('confirmPassword').value;
-    console.log({
-      name: name,
-      email: email,
-      password: password,
-      confirmPassword: passwordConfirm,
-    });
-
     signup(name, email, password, passwordConfirm);
   });
 }
