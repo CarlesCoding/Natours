@@ -7,7 +7,7 @@
     "main": false
   },
   "engines": {
-    "node": ">=10.0.0"
+    "node": ">=16.0.0"
   },
   "browserslist": "last 2 versions",
   "type": "module",

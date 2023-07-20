@@ -43,6 +43,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // IMPORTANT: Cors to allow the server and client to talk to each other
 app.use(cors());
+app.options('*', cors());
 
 // Set security HTTP headers
 app.use(
